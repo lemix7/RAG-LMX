@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(.venv/bin/python:*)"
+      "Bash(.venv/bin/python:*)",
+      "Bash(timeout 5 curl -s --connect-timeout 5 https://api.openai.com)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

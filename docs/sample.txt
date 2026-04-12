@@ -1,0 +1,18 @@
+Artificial Intelligence and Machine Learning
+
+Artificial intelligence (AI) is the simulation of human intelligence processes by machines, especially computer systems. These processes include learning, reasoning, and self-correction. AI is used in a wide range of applications, from voice assistants like Siri and Alexa to self-driving cars and medical diagnosis systems.
+
+Machine learning (ML) is a subset of AI that enables systems to learn and improve from experience without being explicitly programmed. Instead of writing rules manually, machine learning algorithms build a model based on training data to make predictions or decisions.
+
+There are three main types of machine learning:
+1. Supervised Learning - The model is trained on labeled data, meaning each training example has an input and a known correct output. Examples include spam detection and image classification.
+2. Unsupervised Learning - The model is trained on unlabeled data and must find patterns on its own. Examples include customer segmentation and anomaly detection.
+3. Reinforcement Learning - The model learns by interacting with an environment and receiving rewards or penalties. Examples include game-playing AI like AlphaGo and robotic control systems.
+
+Deep Learning is a subset of machine learning that uses neural networks with many layers (hence "deep") to model complex patterns in data. It has been responsible for major breakthroughs in image recognition, natural language processing, and speech recognition.
+
+Large Language Models (LLMs) are a type of deep learning model trained on massive amounts of text data. They can generate human-like text, answer questions, summarize documents, and write code. Examples include GPT-4, Claude, and Gemini.
+
+Retrieval-Augmented Generation (RAG) is a technique that combines information retrieval with text generation. Instead of relying solely on the knowledge stored in a language model, RAG retrieves relevant documents from an external knowledge base and uses them as context to generate more accurate and up-to-date answers. This makes it particularly useful for question-answering systems that need to work with specific or recent information.
+
+Vector databases are a key component of RAG systems. They store document embeddings — numerical representations of text — and allow fast similarity search to find the most relevant chunks of text for a given query. Popular vector databases include Chroma, Pinecone, and Weaviate.

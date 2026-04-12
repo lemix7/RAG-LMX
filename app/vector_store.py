@@ -5,7 +5,7 @@ from langchain_openai import OpenAIEmbeddings
 from config import CHROMA_DIR, COLLECTION_NAME, EMBEDDING_MODEL
 
 def get_embeddings() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30)
 
 def get_vector_store() -> Chroma:
     return Chroma(

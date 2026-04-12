@@ -16,7 +16,7 @@ def format_docs(docs):
 
 def build_rag_chain():
     retriever = get_retriever()
-    llm = ChatOpenAI(model=LLM_MODEL, temperature=0)
+    llm = ChatOpenAI(model=LLM_MODEL, temperature=0, timeout=30, max_retries=2)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
