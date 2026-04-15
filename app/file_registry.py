@@ -1,7 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
-from config import INGESTED_FILES_REGISTRY
+from .config import INGESTED_FILES_REGISTRY
 
 def load_registry() -> dict :
     if not INGESTED_FILES_REGISTRY.exists():

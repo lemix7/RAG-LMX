@@ -1,10 +1,9 @@
 import sys
 
-from document_loader import load_documents
-from text_splitter import split_documents
-from vector_store import ingest_documents
-from rag_chain import ask , stream_ask
-from rag_chain import build_rag_chain
+from app.document_loader import load_documents
+from app.text_splitter import split_documents
+from app.vector_store import ingest_documents
+from app.rag_chain import ask, stream_ask, build_rag_chain
 
 
 def ingest_documents_to_vector_store():

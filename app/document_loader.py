@@ -7,8 +7,8 @@ from langchain_community.document_loaders import (
 )
 from pathlib import Path
 
-from config import DOCS_DIR
-from file_registry import  is_already_ingested , mark_as_ingested
+from .config import DOCS_DIR
+from .file_registry import is_already_ingested, mark_as_ingested
 
 
 def load_documents(directory: Path = DOCS_DIR) -> list[Document]:

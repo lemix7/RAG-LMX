@@ -1,8 +1,8 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from retriever import get_retriever
-from config import LLM_MODEL
+from .retriever import get_retriever
+from .config import LLM_MODEL
 from langchain_core.runnables import RunnablePassthrough
 
 SYSTEM_PROMPT = """You are a helpful assistant that answers questions based on the provided context.

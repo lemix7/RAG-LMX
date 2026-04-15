@@ -1,7 +1,7 @@
 from langchain_core.vectorstores import VectorStoreRetriever
 
-from config import RETRIEVER_K
-from vector_store import get_vector_store
+from .config import RETRIEVER_K
+from .vector_store import get_vector_store
 
 def get_retriever(k: int = RETRIEVER_K, search_type: str = "similarity") -> VectorStoreRetriever:
     if k < 1:
