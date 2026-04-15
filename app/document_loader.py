@@ -8,6 +8,8 @@ from langchain_community.document_loaders import (
 from pathlib import Path
 
 from config import DOCS_DIR
+from file_registry import  is_already_ingested , mark_as_ingested
+
 
 def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
     documents = []
@@ -38,10 +40,16 @@ def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
                 print(f"Skipping empty file: {file_path.name}")
                 continue
 
+            #  skip prev ingested files
+            if is_already_ingested(file_path):
+                print(f"Skipping already-ingested file: {file_path.name}")
+                continue
+
             #  isolate bad files so one failure doesn't crash everything
             try:
                 loader = loaders[file_path.suffix.lower()](str(file_path))
                 documents.extend(loader.load())
+                mark_as_ingested(file_path)
                 print(f"Loaded {file_path.name}")
             except Exception as e:
                 print(f"Failed to load {file_path.name}: {e}")
