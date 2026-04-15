@@ -32,12 +32,13 @@ def build_rag_chain():
     return chain, retriever
 
 
-def ask(question: str) -> dict:
+
+
+def ask(question: str, chain, retriever) -> dict:
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")
 
     try:
-        chain, retriever = build_rag_chain()
         source_docs = retriever.invoke(question)
         answer = chain.invoke(question)
     except Exception as e:

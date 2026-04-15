@@ -4,6 +4,7 @@ from document_loader import load_documents
 from text_splitter import split_documents
 from vector_store import ingest_documents
 from rag_chain import ask
+from rag_chain import build_rag_chain
 
 
 def ingest_documents_to_vector_store():
@@ -26,6 +27,7 @@ def ingest_documents_to_vector_store():
 
 def chat():
     print('RAG Chatbot is ready! Type "quit" to exit.')
+    chain , retriver = build_rag_chain()
 
     while True:
         question = input('\nYou: ').strip()
@@ -34,7 +36,7 @@ def chat():
             break
 
         try:
-            result = ask(question)
+            result = ask(question , chain , retriver)
         except RuntimeError as e:
             print(f"Error: {e}")
             continue
