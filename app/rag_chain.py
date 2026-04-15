@@ -48,3 +48,20 @@ def ask(question: str, chain, retriever) -> dict:
         'answer': answer,
         'source_docs': source_docs,
     }
+
+
+def stream_ask(question: str, chain, retriever) -> dict:
+    if not question or not question.strip():
+        raise ValueError("Question cannot be empty")
+
+    try:
+        source_docs = retriever.invoke(question)
+    except Exception as e:
+        raise RuntimeError(f"Failed to retrieve documents: {e}") from e
+
+
+    stream = chain.stream(question)
+    return {
+        'stream': stream,
+        'source_docs': source_docs,
+    }
