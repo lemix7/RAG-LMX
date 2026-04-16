@@ -10,7 +10,7 @@ import { MobileHeader } from "@/components/MobileHeader";
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const { messages, isStreaming, sendMessage } = useChat();
+  const { messages, isStreaming, sendMessage, clearMessages } = useChat();
   const { files, isUploading, isIngesting, ingestMessage, error, uploadFiles } = useFiles();
 
   return (
@@ -31,6 +31,7 @@ export default function Home() {
           ingestMessage={ingestMessage}
           error={error}
           onFiles={uploadFiles}
+          onNewChat={clearMessages}
         />
 
         {/* Chat area */}
@@ -60,6 +61,7 @@ export default function Home() {
               ingestMessage={ingestMessage}
               error={error}
               onFiles={uploadFiles}
+              onNewChat={clearMessages}
               onClose={() => setSidebarOpen(false)}
               isMobileOverlay
             />

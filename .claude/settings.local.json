@@ -34,7 +34,8 @@
       "Bash(timeout 8 uv run python -c \"import uvicorn; print\\('uvicorn ok'\\)\")",
       "Bash(timeout 8 uv run python -c \"import app.config; print\\('config ok'\\)\")",
       "Bash(timeout 8 uv run python -c \"import app.document_loader; print\\('document_loader ok'\\)\")",
-      "Bash(timeout 8 uv run python -c \"import app.vector_store; print\\('vector_store ok'\\)\")"
+      "Bash(timeout 8 uv run python -c \"import app.vector_store; print\\('vector_store ok'\\)\")",
+      "Bash(timeout 8 uv run python -c ':*)"
     ]
   }
 }
