@@ -1,13 +1,14 @@
 from fastapi import FastAPI, HTTPException , UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from contextlib import asynccontextmanager
 
 from app.document_loader import load_documents
 from app.text_splitter import split_documents
 from app.vector_store import ingest_documents
 from app.rag_chain import build_rag_chain, stream_ask
 from app.config import DOCS_DIR
+from app.file_registry import load_registry
 
 import json
 
@@ -15,14 +16,22 @@ import json
 chain = None
 retriever = None
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def get_chain_and_retriever():
     global chain, retriever
-    chain, retriever = build_rag_chain()
-    yield  
+    if chain is None or retriever is None:
+        chain, retriever = build_rag_chain()
+    return chain, retriever
 
 
-app = FastAPI(title="RAG-LMX", lifespan=lifespan)
+app = FastAPI(title="RAG-LMX")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class QuestionRequest(BaseModel):
@@ -52,7 +61,8 @@ def chat(body: QuestionRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     try:
-        result = stream_ask(body.question, chain, retriever)
+        _chain, _retriever = get_chain_and_retriever()
+        result = stream_ask(body.question, _chain, _retriever)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -83,3 +93,19 @@ async def upload(file: UploadFile = File(...)):
     content = await file.read()
     dest.write_bytes(content)
     return {"message": f"Uploaded {file.filename}. Run /ingest to process it."}
+
+
+@app.get("/files")
+def list_files():
+    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+    registry = load_registry()
+    files = []
+    if DOCS_DIR.exists():
+        for f in DOCS_DIR.iterdir():
+            if f.is_file() and f.suffix.lower() in allowed:
+                files.append({
+                    "name": f.name,
+                    "ingested": f.name in registry,
+                    "size": f.stat().st_size,
+                })
+    return {"files": sorted(files, key=lambda x: x["name"])}
