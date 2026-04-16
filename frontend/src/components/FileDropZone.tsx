@@ -27,43 +27,26 @@ export function FileDropZone({ onFiles, isUploading, isIngesting }: FileDropZone
       const valid = files.filter(isValidFile);
       const invalid = files.filter((f) => !isValidFile(f));
       if (invalid.length > 0) {
-        setRejectMessage(
-          `Unsupported: ${invalid.map((f) => f.name).join(", ")}`
-        );
+        setRejectMessage(`Unsupported: ${invalid.map((f) => f.name).join(", ")}`);
         setTimeout(() => setRejectMessage(null), 4000);
       }
-      if (valid.length > 0) {
-        onFiles(valid);
-      }
+      if (valid.length > 0) onFiles(valid);
     },
     [onFiles]
   );
 
-  const handleDragOver = useCallback((e: DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: DragEvent) => {
+  const handleDragOver = useCallback((e: DragEvent) => { e.preventDefault(); setIsDragging(true); }, []);
+  const handleDragLeave = useCallback((e: DragEvent) => { e.preventDefault(); setIsDragging(false); }, []);
+  const handleDrop = useCallback((e: DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const files = Array.from(e.dataTransfer.files);
-      handleFiles(files);
-    },
-    [handleFiles]
-  );
+    handleFiles(Array.from(e.dataTransfer.files));
+  }, [handleFiles]);
 
   const handleInputChange = useCallback(() => {
     const files = inputRef.current?.files;
     if (files && files.length > 0) {
       handleFiles(Array.from(files));
-      // Reset input so same file can be re-selected
       if (inputRef.current) inputRef.current.value = "";
     }
   }, [handleFiles]);
@@ -72,16 +55,7 @@ export function FileDropZone({ onFiles, isUploading, isIngesting }: FileDropZone
 
   return (
     <div className="px-4 pt-4 pb-2">
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept={ACCEPTED}
-        className="hidden"
-        onChange={handleInputChange}
-        disabled={isBusy}
-      />
-
+      <input ref={inputRef} type="file" multiple accept={ACCEPTED} className="hidden" onChange={handleInputChange} disabled={isBusy} />
       <button
         onClick={() => !isBusy && inputRef.current?.click()}
         onDragOver={handleDragOver}
@@ -109,33 +83,19 @@ export function FileDropZone({ onFiles, isUploading, isIngesting }: FileDropZone
           <>
             <div className="w-9 h-9 rounded-[10px] bg-white border border-[#e0e1e6] shadow-[0px_2px_4px_rgba(0,0,0,0.06)] flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path
-                  d="M8 11V3M8 3L5 6M8 3L11 6"
-                  stroke="#60646c"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 12v1.5A.5.5 0 0 0 2.5 14h11a.5.5 0 0 0 .5-.5V12"
-                  stroke="#60646c"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+                <path d="M8 11V3M8 3L5 6M8 3L11 6" stroke="#60646c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12v1.5A.5.5 0 0 0 2.5 14h11a.5.5 0 0 0 .5-.5V12" stroke="#60646c" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             </div>
             <div>
               <p className="text-[13px] font-[600] text-[#1c2024] leading-tight">
                 {isDragging ? "Drop files here" : "Drop files or click to browse"}
               </p>
-              <p className="text-[11px] text-[#b0b4ba] mt-0.5">
-                PDF, DOCX, TXT, MD, CSV
-              </p>
+              <p className="text-[11px] text-[#b0b4ba] mt-0.5">PDF, DOCX, TXT, MD, CSV</p>
             </div>
           </>
         )}
       </button>
-
       {rejectMessage && (
         <p className="mt-1.5 text-[11px] text-[#ab6400] px-1 animate-fade-in">{rejectMessage}</p>
       )}

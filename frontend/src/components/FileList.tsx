@@ -57,15 +57,10 @@ function FileStatusBadge({ status }: { status: FileInfo["status"] }) {
 function FileIcon({ name }: { name: string }) {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
   const colorMap: Record<string, string> = {
-    pdf: "#c0392b",
-    docx: "#2b6bcd",
-    doc: "#2b6bcd",
-    txt: "#60646c",
-    md: "#8145b5",
-    csv: "#1c7a4a",
+    pdf: "#c0392b", docx: "#2b6bcd", doc: "#2b6bcd",
+    txt: "#60646c", md: "#8145b5", csv: "#1c7a4a",
   };
   const color = colorMap[ext] ?? "#60646c";
-
   return (
     <div
       className="shrink-0 w-7 h-7 rounded-[6px] flex items-center justify-center text-[9px] font-[700] uppercase leading-none"
@@ -99,9 +94,7 @@ export function FileList({ files, ingestMessage }: FileListProps) {
           >
             <FileIcon name={file.name} />
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-[500] text-[#1c2024] truncate leading-tight">
-                {file.name}
-              </p>
+              <p className="text-[12px] font-[500] text-[#1c2024] truncate leading-tight">{file.name}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <FileStatusBadge status={file.status} />
                 {file.size > 0 && (

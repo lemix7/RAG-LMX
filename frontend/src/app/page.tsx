@@ -15,15 +15,9 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col bg-[#f0f0f3]">
-      {/* Mobile top bar */}
-      <MobileHeader
-        onMenuToggle={() => setSidebarOpen(true)}
-        messageCount={messages.length}
-      />
+      <MobileHeader onMenuToggle={() => setSidebarOpen(true)} messageCount={messages.length} />
 
-      {/* Main layout */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Desktop sidebar — always visible on md+ */}
         <Sidebar
           files={files}
           isUploading={isUploading}
@@ -34,25 +28,14 @@ export default function Home() {
           onNewChat={clearMessages}
         />
 
-        {/* Chat area */}
         <main className="flex flex-1 min-h-0 p-4">
-          <ChatArea
-            messages={messages}
-            isStreaming={isStreaming}
-            onSend={sendMessage}
-          />
+          <ChatArea messages={messages} isStreaming={isStreaming} onSend={sendMessage} />
         </main>
       </div>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          />
-          {/* Sidebar panel */}
+          <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="md:hidden fixed inset-y-0 left-0 z-50 flex animate-fade-in">
             <Sidebar
               files={files}
