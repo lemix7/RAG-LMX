@@ -42,6 +42,11 @@ def health():
     return {"status": "ok"}
 
 
+@app.get('/')
+def home():
+    return {'message': 'Server is running '}
+
+
 @app.post("/ingest")
 def ingest():
     try:
