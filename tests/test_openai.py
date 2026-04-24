@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, 'app')
 
-from config import OPENAI_API_KEY
+from app.config import OPENAI_API_KEY
 from openai import OpenAI
 
 print("Testing direct OpenAI connection...")
