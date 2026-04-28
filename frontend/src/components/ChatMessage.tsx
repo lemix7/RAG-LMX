@@ -49,7 +49,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 rounded-full bg-[#b0b4ba]"
+                        className="w-1.5 h-1.5 rounded-full bg-[#94979c]"
                         style={{ animation: `blink 1.2s ease-in-out ${i * 0.2}s infinite` }}
                       />
                     ))}
