@@ -9,8 +9,8 @@ interface SidebarProps {
   ingestMessage?: string | null;
   error?: string | null;
   onFiles: (files: FileList | File[]) => void;
+  onNewChat?: () => void;
   onClose?: () => void;
-  /** If true, renders as a mobile overlay */
   isMobileOverlay?: boolean;
 }
 
@@ -21,6 +21,7 @@ export function Sidebar({
   ingestMessage,
   error,
   onFiles,
+  onNewChat,
   onClose,
   isMobileOverlay = false,
 }: SidebarProps) {
@@ -45,16 +46,26 @@ export function Sidebar({
             aria-label="Close sidebar"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path
-                d="M1 1L11 11M11 1L1 11"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-              />
+              <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
             </svg>
           </button>
         )}
       </div>
+
+      {/* New Chat button */}
+      {onNewChat && (
+        <div className="px-4 pt-3 pb-1">
+          <button
+            onClick={onNewChat}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[9999px] bg-[#000000] text-white text-[13px] font-[600] hover:bg-[#1c2024] active:scale-[0.98] transition-all duration-150"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            </svg>
+            New Chat
+          </button>
+        </div>
+      )}
 
       {/* Section label */}
       <div className="px-4 pt-4 pb-1">
@@ -64,11 +75,7 @@ export function Sidebar({
       </div>
 
       {/* Drop zone */}
-      <FileDropZone
-        onFiles={onFiles}
-        isUploading={isUploading}
-        isIngesting={isIngesting}
-      />
+      <FileDropZone onFiles={onFiles} isUploading={isUploading} isIngesting={isIngesting} />
 
       {/* Error */}
       {error && (

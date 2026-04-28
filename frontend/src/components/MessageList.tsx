@@ -11,7 +11,6 @@ interface MessageListProps {
 export function MessageList({ messages }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

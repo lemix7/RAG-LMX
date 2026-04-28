@@ -42,6 +42,11 @@ def health():
     return {"status": "ok"}
 
 
+@app.get('/')
+def home():
+    return {'message': 'Server is running '}
+
+
 @app.post("/ingest")
 def ingest():
     try:
@@ -70,8 +75,12 @@ def chat(body: QuestionRequest):
     sources = []
 
     for doc in result["source_docs"]:
-        file_name = doc.metadata.get("source" , 'unknow')
-        sources.append(file_name)
+        file_path = doc.metadata.get("source", "unknown")
+        page = doc.metadata.get("page", None)
+        sources.append({
+            "path": file_path,
+            "page": page,
+        })
 
     # for streaming the response currently now working in the fast api docs
     def token_generator():

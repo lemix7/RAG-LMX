@@ -12,12 +12,7 @@ export function MobileHeader({ onMenuToggle, messageCount }: MobileHeaderProps) 
         aria-label="Open menu"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path
-            d="M2 4h12M2 8h12M2 12h12"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
+          <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       </button>
 
@@ -28,7 +23,6 @@ export function MobileHeader({ onMenuToggle, messageCount }: MobileHeaderProps) 
         )}
       </div>
 
-      {/* Spacer to balance the layout */}
       <div className="w-8" />
     </header>
   );
