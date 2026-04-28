@@ -21,7 +21,7 @@ def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
         ".txt": TextLoader,
         ".md": TextLoader,
         ".csv": CSVLoader,
-    }
+    } 
 
     #  folder doesn't exist
     if not directory.exists():

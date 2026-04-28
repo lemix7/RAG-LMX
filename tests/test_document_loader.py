@@ -1,9 +1,9 @@
+from app.document_loader import load_documents
+from pathlib import Path
+import tempfile
 import sys
 sys.path.insert(0, '/Users/ahmad/Desktop/RAG-LMX/app')
 
-import tempfile
-from pathlib import Path
-from document_loader import load_documents
 
 def test_folder_does_not_exist():
     print("\n--- Test 1: Folder does not exist ---")
@@ -11,6 +11,7 @@ def test_folder_does_not_exist():
     result = load_documents(fake_path)
     assert result == [], f"Expected [], got {result}"
     print("PASSED")
+
 
 def test_empty_file_is_skipped():
     print("\n--- Test 2: Empty file is skipped ---")
@@ -21,6 +22,7 @@ def test_empty_file_is_skipped():
         assert result == [], f"Expected [], got {result}"
     print("PASSED")
 
+
 def test_subfolder_is_skipped():
     print("\n--- Test 3: Subfolder is skipped without crashing ---")
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -29,6 +31,7 @@ def test_subfolder_is_skipped():
         result = load_documents(Path(tmpdir))
         assert result == [], f"Expected [], got {result}"
     print("PASSED")
+
 
 def test_corrupted_file_does_not_crash():
     print("\n--- Test 4: Corrupted file does not crash the function ---")
@@ -39,6 +42,7 @@ def test_corrupted_file_does_not_crash():
         assert result == [], f"Expected [], got {result}"
     print("PASSED")
 
+
 def test_valid_txt_file_is_loaded():
     print("\n--- Test 5: Valid .txt file is loaded correctly ---")
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -48,6 +52,7 @@ def test_valid_txt_file_is_loaded():
         assert len(result) > 0, "Expected documents to be loaded"
         assert "Hello" in result[0].page_content
     print("PASSED")
+
 
 if __name__ == "__main__":
     test_folder_does_not_exist()

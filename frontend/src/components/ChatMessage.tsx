@@ -1,5 +1,6 @@
 import type { Message } from "@/lib/types";
 import { SourceAttribution } from "./SourceAttribution";
+import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
   message: Message;
@@ -44,10 +45,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
             ) : (
               <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-white border border-[#e0e1e6] shadow-[0px_3px_6px_rgba(0,0,0,0.08)]">
                 {message.content ? (
-                  <p className="text-[15px] text-[#1c2024] leading-[1.55] font-[400] whitespace-pre-wrap break-words">
-                    {message.content}
+                  <div className="text-[15px] text-[#1c2024] leading-[1.55] font-[400] break-words prose prose-sm max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
                     {message.isStreaming && <span className="cursor-blink ml-0.5" />}
-                  </p>
+                  </div>
                 ) : message.isStreaming ? (
                   /* Thinking dots */
                   <div className="flex items-center gap-1 py-1">

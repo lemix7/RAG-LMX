@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* ─── Expo Design System Tokens ──────────────────────────────────── */
 @theme inline {
