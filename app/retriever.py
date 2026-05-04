@@ -1,18 +1,120 @@
-from langchain_core.vectorstores import VectorStoreRetriever
+import operator
+from collections.abc import Sequence
 
-from .config import RETRIEVER_K
+from langchain_community.retrievers import BM25Retriever
+from langchain_classic.retrievers import EnsembleRetriever, ContextualCompressionRetriever
+from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_core.callbacks import Callbacks
+from langchain_core.documents import Document
+
+from .config import (
+    RETRIEVER_K,
+    ENSEMBLE_K,
+    VECTOR_WEIGHT,
+    BM25_WEIGHT,
+    RERANKER_MODEL,
+    RERANKER_SCORE_THRESHOLD,
+)
 from .vector_store import get_vector_store
 
-def get_retriever(k: int = RETRIEVER_K, search_type: str = "similarity") -> VectorStoreRetriever:
+
+class ThresholdReranker(CrossEncoderReranker):
+    """
+    CrossEncoderReranker + score threshold.
+    Drops chunks that score below the threshold so the LLM only
+    receives genuinely relevant context.
+    """
+    score_threshold: float = 0.0
+
+    def compress_documents(
+        self,
+        documents: Sequence[Document],
+        query: str,
+        callbacks: Callbacks | None = None,
+    ) -> Sequence[Document]:
+        scores = self.model.score([(query, doc.page_content)
+                                  for doc in documents])
+        docs_with_scores = list(zip(documents, scores, strict=False))
+        result = sorted(docs_with_scores,
+                        key=operator.itemgetter(1), reverse=True)
+        return [
+            doc for doc, score in result[: self.top_n]
+            if score >= self.score_threshold
+        ]
+
+
+def _fetch_all_documents_from_chroma() -> list[Document]:
+    """
+    Loads every stored chunk out of ChromaDB so BM25 can build its index.
+    BM25 is not a persistent database — it lives in memory and needs the raw
+    text of every chunk at startup. Returns empty list if collection is empty.
+    """
+    vector_store = get_vector_store()
+    result = vector_store.get(include=["documents", "metadatas"])
+
+    texts = result.get("documents") or []
+    metadatas = result.get("metadatas") or []
+
+    if not texts:
+        print(
+            "Warning: ChromaDB collection is empty. BM25 retriever will return no results.")
+        return []
+
+    documents = [
+        Document(page_content=text, metadata=meta or {})
+        for text, meta in zip(texts, metadatas)
+    ]
+    print(f"Loaded {len(documents)} chunks from ChromaDB for BM25 index.")
+    return documents
+
+
+def get_retriever(k: int = RETRIEVER_K):
+    """
+    Builds the full hybrid retrieval pipeline:
+      Vector retriever + BM25 retriever → EnsembleRetriever → CrossEncoder reranker
+    Falls back to vector-only if ChromaDB is empty (e.g. before first ingest).
+    """
     if k < 1:
         raise ValueError(f"k must be at least 1, got {k}")
-    if search_type not in ("similarity", "mmr"):
-        raise ValueError(f"search_type must be 'similarity' or 'mmr', got '{search_type}'")
 
     vector_store = get_vector_store()
-    retriever = vector_store.as_retriever(
-        search_type=search_type,
-        search_kwargs={"k": k},
+
+    vector_retriever = vector_store.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": ENSEMBLE_K},
     )
-    print(f"Retriever initialized with k={k}, search_type={search_type}")
-    return retriever
+
+    all_docs = _fetch_all_documents_from_chroma()
+
+    if not all_docs:
+        print("Falling back to vector-only retriever (no documents in store yet).")
+        return vector_store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": k},
+        )
+
+    bm25_retriever = BM25Retriever.from_documents(all_docs, k=ENSEMBLE_K)
+
+    # Combine both retrievers
+    ensemble_retriever = EnsembleRetriever(
+        retrievers=[vector_retriever, bm25_retriever],
+        weights=[VECTOR_WEIGHT, BM25_WEIGHT],
+    )
+
+    # Reranker
+    cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
+    reranker = ThresholdReranker(
+        model=cross_encoder,
+        top_n=k,
+        score_threshold=RERANKER_SCORE_THRESHOLD,
+    )
+
+    hybrid_retriever = ContextualCompressionRetriever(
+        base_compressor=reranker,
+        base_retriever=ensemble_retriever,
+    )
+
+    print(
+        f"Hybrid retriever ready: vector(k={ENSEMBLE_K}) + BM25(k={ENSEMBLE_K}) → rerank → top {k}")
+    return hybrid_retriever
