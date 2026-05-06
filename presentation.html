@@ -1063,9 +1063,9 @@ hr.hairline { border: none; border-top: 1px solid var(--hairline); }
   <div class="slide" id="s-hiw">
     <div class="content">
       <div class="section-label">How It Works</div>
-      <h2 class="t-display-lg">Two steps:<br>load, then retrieve and answer.</h2>
+      <h2 class="t-display-lg">Three steps:<br>load, ask, then answer.</h2>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-lg);margin-top:var(--sp-xxl);">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-lg);margin-top:var(--sp-xxl);">
 
         <!-- Step 1 -->
         <div class="feature-card" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
@@ -1073,7 +1073,7 @@ hr.hairline { border: none; border-top: 1px solid var(--hairline); }
             <div style="width:28px;height:28px;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--mute);flex-shrink:0;">1</div>
             <p class="t-body-sm-strong">Loading your documents</p>
           </div>
-          <p class="t-body-sm">You upload a file. The system reads it, cuts it into small overlapping sections, and converts each section into a <strong style="color:var(--ink);font-weight:500;">vector embedding</strong> — think of it as turning text into a map of meaning the computer understands. Those numbers are stored in a local database called <span class="keycap">ChromaDB</span>.</p>
+          <p class="t-body-sm">You upload a file. The system reads it, cuts it into small overlapping sections, and converts each section into a <strong style="color:var(--ink);font-weight:500;">vector embedding</strong> — turning text into numbers that capture its meaning. Those vectors are stored in a local database called <span class="keycap">ChromaDB</span>.</p>
           <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
             <span class="example-chip">PDF · DOCX · TXT · CSV · MD</span>
             <span class="example-chip">800ch chunks · 150ch overlap</span>
@@ -1082,15 +1082,29 @@ hr.hairline { border: none; border-top: 1px solid var(--hairline); }
         </div>
 
         <!-- Step 2 -->
+        <div class="feature-card" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
+          <div style="display:flex;align-items:center;gap:var(--sp-md);">
+            <div style="width:28px;height:28px;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--mute);flex-shrink:0;">2</div>
+            <p class="t-body-sm-strong">Entering your question</p>
+          </div>
+          <p class="t-body-sm">You type your question. It goes through the same embedding process — converted into a <strong style="color:var(--ink);font-weight:500;">vector</strong> and compared against all the stored document vectors to find the sections closest in meaning. Simultaneously, a keyword search scans for exact term matches.</p>
+          <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
+            <span class="example-chip">query → vector</span>
+            <span class="example-chip">semantic similarity search</span>
+            <span class="example-chip">+ BM25 keyword scan</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
         <div class="feature-card-elevated" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
           <div style="display:flex;align-items:center;gap:var(--sp-md);">
-            <div style="width:28px;height:28px;background:var(--surface-card);border:1px solid var(--hairline-strong);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--on-dark);flex-shrink:0;">2</div>
-            <p class="t-body-sm-strong">Answering your question</p>
+            <div style="width:28px;height:28px;background:var(--surface-card);border:1px solid var(--hairline-strong);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--on-dark);flex-shrink:0;">3</div>
+            <p class="t-body-sm-strong">Generating the answer</p>
           </div>
-          <p class="t-body-sm">When you ask something, a three-stage retrieval process runs before the AI writes a single word. Two search methods run simultaneously — one based on meaning, one on exact keywords. Their results are merged, scored by a local ranking model, and only the most relevant sections reach GPT-4o-mini.</p>
+          <p class="t-body-sm">The two result sets are merged with weighted scoring, then a local neural reranker scores every candidate and keeps only the most relevant. Those top passages are handed to <strong style="color:var(--ink);font-weight:500;">GPT-4o-mini</strong>, which writes the final answer.</p>
           <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
-            <span class="example-chip">Vector · BM25 · CrossEncoder</span>
             <span class="example-chip">60% semantic · 40% keyword</span>
+            <span class="example-chip">CrossEncoder reranker</span>
             <span class="example-chip">top 5 → GPT-4o-mini</span>
           </div>
         </div>
