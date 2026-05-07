@@ -5,7 +5,7 @@ A local Retrieval-Augmented Generation (RAG) chatbot that lets you ask questions
 ## How it works
 
 1. **Ingest** — documents are loaded, split into chunks, embedded with OpenAI, and stored in a local ChromaDB vector database.
-2. **Chat** — your question is embedded, the most relevant chunks are retrieved, and GPT-4o-mini generates an answer grounded in those chunks with source attribution.
+2. **Chat** — your question is embedded and matched against the vector store (semantic similarity) and a BM25 keyword index simultaneously. Results from both are merged by an ensemble retriever, then reranked by a local CrossEncoder model. The top chunks are passed to GPT-4o-mini, which generates an answer grounded in those chunks with source attribution.
 
 ## Supported file types
 
@@ -82,7 +82,7 @@ app/
   document_loader.py # loads files from docs/
   text_splitter.py   # splits documents into chunks
   vector_store.py    # ChromaDB ingestion and retrieval
-  retriever.py       # vector store retriever wrapper
+  retriever.py       # hybrid retriever: vector + BM25 ensemble → CrossEncoder reranker
   rag_chain.py       # LangChain LCEL chain + ask()
   main.py            # CLI entrypoint (ingest | chat)
   file_registry.py   # tracks which files have been ingested
@@ -113,9 +113,14 @@ All tunable parameters are in `app/config.py`:
 |---|---|---|
 | `EMBEDDING_MODEL` | `text-embedding-3-small` | OpenAI embedding model |
 | `LLM_MODEL` | `gpt-4o-mini` | OpenAI chat model |
-| `CHUNK_SIZE` | `1000` | Max characters per chunk |
-| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
-| `RETRIEVER_K` | `4` | Number of chunks retrieved per query |
+| `CHUNK_SIZE` | `800` | Max characters per chunk |
+| `CHUNK_OVERLAP` | `150` | Overlap between chunks |
+| `RETRIEVER_K` | `5` | Final number of chunks passed to the LLM after reranking |
+| `ENSEMBLE_K` | `10` | Chunks fetched from each retriever before reranking |
+| `VECTOR_WEIGHT` | `0.6` | Weight of vector retriever in the ensemble |
+| `BM25_WEIGHT` | `0.4` | Weight of BM25 retriever in the ensemble |
+| `RERANKER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Local CrossEncoder model for reranking |
+| `RERANKER_SCORE_THRESHOLD` | `0.0` | Minimum reranker score to keep a chunk |
 
 ## Running tests
 

@@ -35,3 +35,13 @@ def mark_as_ingested(file_path: Path) :
     registry[file_path.name] = file_hash
     save_registry(registry)
 
+
+def remove_from_registry(file_name: str) -> bool:
+    """Removes a file entry from the registry by name. Returns True if it was present."""
+    registry = load_registry()
+    if file_name in registry:
+        del registry[file_name]
+        save_registry(registry)
+        return True
+    return False
+

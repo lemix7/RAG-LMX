@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 from app.document_loader import load_documents
 from app.text_splitter import split_documents
-from app.vector_store import ingest_documents
+from app.vector_store import ingest_documents, delete_document
 from app.rag_chain import build_rag_chain, stream_ask
 from app.config import DOCS_DIR
-from app.file_registry import load_registry
+from app.file_registry import load_registry, remove_from_registry
 
 import json
 
@@ -21,6 +21,11 @@ def get_chain_and_retriever():
     if chain is None or retriever is None:
         chain, retriever = build_rag_chain()
     return chain, retriever
+
+def invalidate_chain():
+    global chain, retriever
+    chain = None
+    retriever = None
 
 
 app = FastAPI(title="RAG-LMX")
@@ -55,6 +60,7 @@ def ingest():
             return {"message": "No new documents to ingest."}
         chunks = split_documents(documents)
         ingest_documents(chunks)
+        invalidate_chain()
         return {"message": f"Ingested {len(chunks)} chunks from {len(documents)} documents."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -102,6 +108,21 @@ async def upload(file: UploadFile = File(...)):
     content = await file.read()
     dest.write_bytes(content)
     return {"message": f"Uploaded {file.filename}. Run /ingest to process it."}
+
+
+@app.delete("/files/{file_name}")
+def delete_file(file_name: str):
+    file_path = DOCS_DIR / file_name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
+    try:
+        chunks_removed = delete_document(file_name)
+        remove_from_registry(file_name)
+        file_path.unlink()
+        invalidate_chain()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"message": f"Deleted '{file_name}' ({chunks_removed} chunks removed)"}
 
 
 @app.get("/files")

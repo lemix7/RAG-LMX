@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RAG-LMX — Hybrid Retrieval</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════
+   RAYCAST DESIGN SYSTEM TOKENS
+═══════════════════════════════════════════ */
+:root {
+  /* Surface ladder */
+  --canvas:            #07080a;
+  --surface:           #0d0d0d;
+  --surface-elevated:  #101111;
+  --surface-card:      #121212;
+  --button-fg:         #18191a;
+
+  /* Borders */
+  --hairline:          #242728;
+  --hairline-soft:     rgba(255,255,255,0.08);
+  --hairline-strong:   rgba(255,255,255,0.16);
+
+  /* Brand */
+  --primary:           #ffffff;
+  --primary-pressed:   #e8e8e8;
+  --on-primary:        #000000;
+
+  /* Text */
+  --ink:               #f4f4f6;
+  --body:              #cdcdcd;
+  --charcoal:          #d3d3d4;
+  --mute:              #9c9c9d;
+  --ash:               #6a6b6c;
+  --stone:             #434345;
+  --on-dark:           #ffffff;
+  --on-dark-mute:      rgba(255,255,255,0.72);
+
+  /* Accents (illustrations only) */
+  --accent-blue:       #57c1ff;
+  --accent-blue-soft:  rgba(87,193,255,0.15);
+  --accent-red:        #ff6161;
+  --accent-red-soft:   rgba(255,97,97,0.15);
+  --accent-green:      #59d499;
+  --accent-green-soft: rgba(89,212,153,0.15);
+  --accent-yellow:     #ffc533;
+  --accent-yellow-soft:rgba(255,197,51,0.15);
+
+  /* Hero stripe */
+  --hero-stripe-start: #ff5757;
+  --hero-stripe-end:   #a1131a;
+
+  /* Keycap */
+  --key-bg-start:      #121212;
+  --key-bg-end:        #0d0d0d;
+
+  /* Radius */
+  --rounded-none: 0px;
+  --rounded-xs:   4px;
+  --rounded-sm:   6px;
+  --rounded-md:   8px;
+  --rounded-lg:   10px;
+  --rounded-xl:   16px;
+  --rounded-full: 9999px;
+
+  /* Spacing */
+  --sp-xxs:     2px;
+  --sp-xs:      4px;
+  --sp-sm:      8px;
+  --sp-md:      12px;
+  --sp-lg:      16px;
+  --sp-xl:      24px;
+  --sp-xxl:     32px;
+  --sp-section: 96px;
+}
+
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--canvas);
+  color: var(--body);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: "calt", "kern", "liga", "ss03";
+  font-size: 16px;
+  line-height: 1.6;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════
+   DECK
+═══════════════════════════════════════════ */
+#deck {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 64px 48px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(24px);
+  transition: opacity 0.32s ease, transform 0.32s ease;
+  background: var(--canvas);
+  overflow-y: auto;
+}
+.slide.active   { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.exit     { opacity: 0; transform: translateX(-24px); transition: opacity 0.22s ease, transform 0.22s ease; }
+
+.content {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY TOKENS
+═══════════════════════════════════════════ */
+.t-display-xl {
+  font-size: clamp(36px, 4.8vw, 64px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--ink);
+  font-feature-settings: "calt", "kern", "ss02", "ss03", "ss08";
+}
+.t-display-lg {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 500;
+  line-height: 1.17;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+.t-heading-xl {
+  font-size: clamp(18px, 1.9vw, 24px);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+.t-heading-lg {
+  font-size: clamp(16px, 1.7vw, 22px);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.t-heading-md {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+.t-heading-sm {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+.t-body-lg  { font-size: 18px; font-weight: 400; line-height: 1.6; color: var(--body); }
+.t-body-md  { font-size: 16px; font-weight: 400; line-height: 1.6; color: var(--body); }
+.t-body-strong { font-size: 16px; font-weight: 500; line-height: 1.4; letter-spacing: 0.2px; color: var(--ink); }
+.t-body-sm  { font-size: 14px; font-weight: 400; line-height: 1.6; color: var(--body); }
+.t-body-sm-strong { font-size: 14px; font-weight: 500; line-height: 1.6; letter-spacing: 0.2px; color: var(--ink); }
+.t-caption-md { font-size: 13px; font-weight: 400; line-height: 1.4; letter-spacing: 0.1px; color: var(--mute); }
+.t-caption-sm { font-size: 12px; font-weight: 400; line-height: 1.5; letter-spacing: 0.4px; color: var(--mute); }
+.t-button-md  { font-size: 14px; font-weight: 500; line-height: 1.6; letter-spacing: 0.2px; }
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════ */
+
+/* button-primary */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-family: inherit;
+  font-size: 14px; font-weight: 500; line-height: 1.6; letter-spacing: 0.2px;
+  font-feature-settings: "calt","kern","liga","ss03";
+  padding: 8px 16px;
+  height: 36px;
+  border-radius: var(--rounded-md);
+  border: none; cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background 0.12s;
+}
+.btn-primary:active { background: var(--primary-pressed); }
+
+/* button-secondary */
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent;
+  color: var(--on-dark);
+  font-family: inherit;
+  font-size: 14px; font-weight: 500; line-height: 1.6; letter-spacing: 0.2px;
+  font-feature-settings: "calt","kern","liga","ss03";
+  padding: 8px 16px;
+  height: 36px;
+  border-radius: var(--rounded-md);
+  border: none; cursor: pointer; white-space: nowrap;
+}
+
+/* button-tertiary */
+.btn-tertiary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-elevated);
+  color: var(--on-dark);
+  font-family: inherit;
+  font-size: 14px; font-weight: 500; line-height: 1.6; letter-spacing: 0.2px;
+  font-feature-settings: "calt","kern","liga","ss03";
+  padding: 8px 16px;
+  height: 36px;
+  border-radius: var(--rounded-md);
+  border: none; cursor: pointer; white-space: nowrap;
+}
+
+/* install-button */
+.btn-install {
+  display: inline-flex; align-items: center;
+  background: transparent;
+  color: var(--on-dark);
+  font-family: inherit;
+  font-size: 14px; font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--rounded-md);
+  border: 1px solid var(--hairline-strong);
+  cursor: pointer; white-space: nowrap;
+}
+
+/* pill-tab */
+.pill-tab {
+  display: inline-flex; align-items: center;
+  background: transparent;
+  color: var(--body);
+  font-size: 14px; font-weight: 400; line-height: 1.6;
+  padding: 4px 10px;
+  border-radius: var(--rounded-full);
+  border: none; cursor: pointer; white-space: nowrap;
+}
+.pill-tab.active {
+  background: var(--surface-elevated);
+  color: var(--on-dark);
+}
+
+/* badge-pro */
+.badge-pro {
+  display: inline-flex; align-items: center;
+  background: var(--surface-elevated);
+  color: var(--on-dark-mute);
+  font-size: 12px; font-weight: 400; letter-spacing: 0.4px;
+  padding: 2px 6px;
+  border-radius: var(--rounded-xs);
+}
+
+/* badge-info */
+.badge-info {
+  display: inline-flex; align-items: center;
+  background: var(--accent-blue-soft);
+  color: var(--accent-blue);
+  font-size: 12px; font-weight: 400; letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: var(--rounded-xs);
+}
+.badge-green {
+  background: var(--accent-green-soft);
+  color: var(--accent-green);
+}
+
+/* keycap */
+.keycap {
+  display: inline-flex; align-items: center;
+  background: linear-gradient(180deg, var(--key-bg-start), var(--key-bg-end));
+  border: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 13px; font-weight: 400; letter-spacing: 0.1px;
+  padding: 1px 6px;
+  height: 20px;
+  border-radius: var(--rounded-xs);
+  white-space: nowrap;
+}
+
+/* feature-card-dark */
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+}
+
+/* feature-card elevated variant */
+.feature-card-elevated {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+}
+
+/* command-palette-card */
+.cmd-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-xl);
+  overflow: hidden;
+}
+.cmd-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+.cmd-traffic {
+  display: flex; gap: 5px;
+}
+.cmd-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.cmd-dot.red    { background: #ff5f57; }
+.cmd-dot.yellow { background: #febc2e; }
+.cmd-dot.green  { background: #28c840; }
+.cmd-search {
+  flex: 1;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-sm);
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--mute);
+  display: flex; align-items: center; gap: 6px;
+}
+.cmd-search-icon { color: var(--ash); font-size: 11px; }
+.cmd-body { padding: 4px; }
+.cmd-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: 6px 10px;
+  border-radius: var(--rounded-sm);
+  cursor: default;
+}
+.cmd-row.active { background: var(--surface-card); }
+.cmd-row-icon {
+  width: 28px; height: 28px;
+  border-radius: var(--rounded-md);
+  background: var(--surface-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.cmd-row-label { flex: 1; font-size: 13px; color: var(--on-dark); font-weight: 400; }
+.cmd-row-hint  { display: flex; gap: 4px; }
+.cmd-section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--ash);
+  text-transform: uppercase;
+  padding: 8px 10px 2px;
+}
+.cmd-footer {
+  border-top: 1px solid var(--hairline);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* app-icon-tile */
+.app-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--rounded-md);
+  background: var(--surface-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.app-icon.lg {
+  width: 64px; height: 64px;
+  border-radius: var(--rounded-lg);
+  font-size: 30px;
+}
+
+/* hairline */
+hr.hairline { border: none; border-top: 1px solid var(--hairline); }
+
+/* section-label */
+.section-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin-bottom: var(--sp-lg);
+}
+
+/* ═══════════════════════════════════════════
+   HERO STRIPE GRADIENT
+═══════════════════════════════════════════ */
+.hero-stripe {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 220px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.hero-stripe::before,
+.hero-stripe::after,
+.hero-stripe .stripe3 {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 3px;
+  left: -50%;
+  transform-origin: center;
+  opacity: 0.5;
+}
+.hero-stripe::before {
+  background: linear-gradient(90deg, transparent, var(--hero-stripe-start), var(--hero-stripe-end), transparent);
+  top: 48px;
+  transform: rotate(-8deg);
+  opacity: 0.35;
+}
+.hero-stripe::after {
+  background: linear-gradient(90deg, transparent, var(--hero-stripe-start), var(--hero-stripe-end), transparent);
+  top: 72px;
+  transform: rotate(-8deg);
+  opacity: 0.22;
+  height: 2px;
+}
+.hero-stripe .stripe3 {
+  background: linear-gradient(90deg, transparent, var(--hero-stripe-start), var(--hero-stripe-end), transparent);
+  top: 88px;
+  transform: rotate(-8deg);
+  opacity: 0.12;
+  height: 1px;
+}
+
+/* top nav removed */
+
+/* ═══════════════════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════════════════ */
+#bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--canvas);
+  border-top: 1px solid var(--hairline);
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-xl);
+  z-index: 300;
+}
+.nav-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--rounded-md);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--on-dark);
+  transition: background 0.12s;
+}
+.nav-btn:active { background: var(--surface-card); }
+.nav-btn:disabled { color: var(--ash); cursor: default; }
+.dot-row { display: flex; gap: 5px; align-items: center; }
+.dot {
+  width: 5px; height: 5px;
+  border-radius: var(--rounded-full);
+  background: var(--hairline-strong);
+  cursor: pointer; border: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.dot.active { background: var(--on-dark); transform: scale(1.5); }
+
+/* ═══════════════════════════════════════════
+   SLIDE-SPECIFIC
+═══════════════════════════════════════════ */
+
+/* ── S1: HERO ── */
+#s0 { justify-content: center; }
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.hero-left { display: flex; flex-direction: column; gap: var(--sp-xl); }
+.hero-eyebrow { display: flex; align-items: center; gap: var(--sp-md); }
+.hero-pill-badge {
+  display: inline-flex; align-items: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-full);
+  padding: 3px 10px 3px 6px;
+  gap: 6px;
+  font-size: 12px; font-weight: 400; color: var(--body);
+}
+.hero-pill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 6px var(--accent-green);
+}
+.hero-chip-row { display: flex; gap: var(--sp-sm); flex-wrap: wrap; }
+
+/* ── S2: PROBLEM ── */
+#s1 {}
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-lg);
+  margin-top: var(--sp-xxl);
+}
+.problem-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  display: flex; flex-direction: column; gap: var(--sp-lg);
+}
+.problem-num {
+  width: 28px; height: 28px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: var(--mute);
+}
+.solution-strip {
+  margin-top: var(--sp-lg);
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl) var(--sp-xxl);
+  display: flex; align-items: center; gap: var(--sp-xl);
+}
+.solution-icon-box {
+  width: 36px; height: 36px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+
+/* ── S3: RAG ── */
+#s2 {}
+.rag-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: var(--sp-xxl);
+}
+.check-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: var(--sp-lg);
+  margin-top: var(--sp-xl);
+}
+.check-list li {
+  display: flex; align-items: flex-start; gap: var(--sp-md);
+  font-size: 15px; color: var(--body); line-height: 1.5;
+}
+.check-mark {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--accent-green);
+  margin-top: 2px;
+}
+.code-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+}
+.code-header {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+.code-body {
+  padding: var(--sp-xl);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--body);
+}
+.cc { color: var(--ash); font-style: italic; }
+.ck { color: var(--accent-red); }
+.cf { color: var(--charcoal); font-weight: 500; }
+.cs { color: var(--accent-yellow); }
+
+/* ── S4: PIPELINE ── */
+#s3 {}
+.pipeline-row {
+  display: flex; align-items: stretch; gap: 0;
+  margin-top: var(--sp-xxl);
+}
+.pipe-node {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: 18px 14px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.pipe-node.lit {
+  background: var(--surface-elevated);
+  border-color: var(--hairline-strong);
+}
+.pipe-connector {
+  width: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--stone); font-size: 14px;
+}
+.pipe-plus {
+  width: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--hairline-strong); font-size: 16px; font-weight: 300;
+}
+.pipeline-note {
+  margin-top: var(--sp-lg);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl) var(--sp-xxl);
+  display: flex; align-items: center; gap: var(--sp-xl);
+}
+.note-icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+
+/* ── S5: WHY HYBRID ── */
+#s4 {}
+.vs-grid {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  gap: var(--sp-lg);
+  margin-top: var(--sp-xxl);
+  align-items: center;
+}
+.vs-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  height: 100%;
+}
+.vs-center-badge {
+  width: 32px; height: 32px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--ash);
+  margin: auto;
+}
+.vs-list {
+  list-style: none;
+  margin-top: var(--sp-lg);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.vs-list li {
+  font-size: 14px; color: var(--body); line-height: 1.5;
+  padding-left: 16px; position: relative;
+}
+.vs-list li::before { content: '—'; position: absolute; left: 0; color: var(--stone); }
+.example-band {
+  margin-top: var(--sp-lg);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl) var(--sp-xxl);
+  display: flex; align-items: center; gap: var(--sp-xl);
+}
+.example-q {
+  font-size: 14px; font-weight: 500; color: var(--ink); flex: 1;
+}
+.example-chips { display: flex; gap: var(--sp-sm); flex-wrap: wrap; }
+.example-chip {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  color: var(--body);
+  font-size: 12px; font-weight: 400;
+  padding: 3px 10px;
+  border-radius: var(--rounded-sm);
+  white-space: nowrap;
+}
+
+/* ── S6: CROSSENCODER ── */
+#s5 {}
+.rerank-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: var(--sp-xxl);
+  align-items: start;
+}
+.step-list { list-style: none; display: flex; flex-direction: column; gap: var(--sp-lg); }
+.step-row  { display: flex; align-items: flex-start; gap: var(--sp-md); }
+.step-num {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: var(--mute);
+  margin-top: 3px;
+}
+.step-num.hi {
+  border-color: var(--hairline-strong);
+  color: var(--on-dark);
+}
+.step-body p { font-size: 14px; color: var(--body); line-height: 1.5; }
+.step-body strong { color: var(--ink); font-weight: 500; }
+.model-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  overflow: hidden;
+}
+.model-card-header {
+  padding: 10px var(--sp-xl);
+  border-bottom: 1px solid var(--hairline);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.model-card-body { padding: var(--sp-xl); display: flex; flex-direction: column; gap: var(--sp-lg); }
+.model-name {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  color: var(--accent-yellow);
+  word-break: break-all;
+}
+.local-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-full);
+  padding: 3px 10px;
+  font-size: 12px; color: var(--mute);
+}
+.local-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); }
+.model-desc { font-size: 13px; color: var(--mute); line-height: 1.5; }
+
+/* ── S7: NUMBERS ── */
+#s6 {}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-lg);
+  margin-top: var(--sp-xxl);
+}
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  display: flex; flex-direction: column; gap: var(--sp-sm);
+}
+.stat-val {
+  font-size: clamp(28px, 2.8vw, 42px);
+  font-weight: 600; line-height: 1;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+}
+.stat-val sup { font-size: 0.48em; font-weight: 500; color: var(--ash); vertical-align: super; }
+.stat-desc { font-size: 13px; color: var(--mute); line-height: 1.4; }
+
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-lg);
+  margin-top: var(--sp-lg);
+}
+.weight-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  display: flex; flex-direction: column; gap: var(--sp-md);
+}
+.weight-row { display: flex; flex-direction: column; gap: 5px; }
+.weight-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); font-weight: 400; }
+.weight-labels .pct { color: var(--ink); font-weight: 500; }
+.weight-bar {
+  height: 4px;
+  border-radius: var(--rounded-full);
+  background: var(--hairline);
+  overflow: hidden;
+}
+.weight-fill { height: 100%; border-radius: var(--rounded-full); background: var(--on-dark); }
+
+.stack-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-sm);
+}
+.stack-chip {
+  background: var(--surface-elevated);
+  border-radius: var(--rounded-md);
+  padding: var(--sp-md) var(--sp-lg);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stack-chip-label { font-size: 11px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ash); }
+.stack-chip-val   { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.3; }
+
+/* ── S8: CONCLUSION ── */
+#s7 {}
+.conclusion-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  margin-top: var(--sp-xxl);
+  align-items: start;
+}
+.conclusion-list { display: flex; flex-direction: column; gap: var(--sp-lg); }
+.conclusion-row {
+  display: flex; align-items: center; gap: var(--sp-xl);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-xl);
+}
+.conclusion-row-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.conclusion-row .row-text h4 { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.conclusion-row .row-text p  { font-size: 13px; color: var(--mute); line-height: 1.4; }
+
+.conclusion-cmd {
+  display: flex; flex-direction: column; gap: var(--sp-lg);
+}
+.cta-block {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-xl);
+  padding: var(--sp-xxl);
+  display: flex; flex-direction: column; gap: var(--sp-xl);
+}
+.cta-block-text { display: flex; flex-direction: column; gap: var(--sp-lg); }
+.cta-shortcut-row {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  font-size: 13px; color: var(--mute);
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .hero-grid, .rag-two-col, .rerank-col, .conclusion-grid { grid-template-columns: 1fr; }
+  .vs-grid { grid-template-columns: 1fr; }
+  .vs-center-badge { display: none; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .bottom-row { grid-template-columns: 1fr; }
+  .slide { padding: 32px 28px; }
+  .pipeline-row { flex-direction: column; }
+  .pipe-connector { transform: rotate(90deg); height: 20px; width: auto; }
+  .pipe-plus { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     DECK
+══════════════════════════════════ -->
+<div id="deck">
+
+  <!-- ── SLIDE 1: HERO ── -->
+  <div class="slide active" id="s0">
+    <div class="hero-stripe"><div class="stripe3"></div></div>
+    <div class="content" style="position:relative;z-index:1;">
+      <div class="hero-grid">
+
+        <div class="hero-left">
+          <h1 class="t-display-xl">Your documents.<br>Your questions.<br>Real answers.</h1>
+
+          <p class="t-body-lg" style="max-width:440px;">RAG-LMX is a document question-answering system that retrieves the most relevant passages from your files before the AI ever writes a word.</p>
+
+          <div class="hero-chip-row">
+            <span class="pill-tab active">Hybrid Search</span>
+            <span class="pill-tab">BM25 + Vector</span>
+            <span class="pill-tab">CrossEncoder</span>
+          </div>
+        </div>
+
+        <!-- command-palette mockup -->
+        <div class="cmd-card">
+          <div class="cmd-header">
+            <div class="cmd-traffic">
+              <div class="cmd-dot red"></div>
+              <div class="cmd-dot yellow"></div>
+              <div class="cmd-dot green"></div>
+            </div>
+            <div class="cmd-search">
+              <span class="cmd-search-icon">⌕</span>
+              <span>Search your documents...</span>
+            </div>
+            <div class="keycap">⌘ K</div>
+          </div>
+          <div class="cmd-body">
+            <div class="cmd-section-label">RAG Pipeline</div>
+            <div class="cmd-row active">
+              <div class="cmd-row-icon">🔍</div>
+              <span class="cmd-row-label">Vector Search — semantic meaning</span>
+              <div class="cmd-row-hint"><span class="keycap">k=10</span></div>
+            </div>
+            <div class="cmd-row">
+              <div class="cmd-row-icon">📝</div>
+              <span class="cmd-row-label">BM25 — keyword matching</span>
+              <div class="cmd-row-hint"><span class="keycap">k=10</span></div>
+            </div>
+            <div class="cmd-row">
+              <div class="cmd-row-icon">⚖️</div>
+              <span class="cmd-row-label">Ensemble Merge — 60% vector + 40% BM25</span>
+            </div>
+            <div class="cmd-section-label">Reranking</div>
+            <div class="cmd-row">
+              <div class="cmd-row-icon">🎯</div>
+              <span class="cmd-row-label">CrossEncoder — score each (query, chunk)</span>
+              <div class="cmd-row-hint"><span class="keycap">top 5</span></div>
+            </div>
+            <div class="cmd-row">
+              <div class="cmd-row-icon">💬</div>
+              <span class="cmd-row-label">GPT-4o-mini — generate grounded answer</span>
+            </div>
+          </div>
+          <div class="cmd-footer">
+            <div style="display:flex;gap:8px;">
+              <span class="keycap">↑↓</span><span class="t-caption-sm">navigate</span>
+              <span class="keycap">⏎</span><span class="t-caption-sm">run query</span>
+            </div>
+            <span class="t-caption-sm" style="color:var(--ash);">gpt-4o-mini · ChromaDB · BM25</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 2: PROBLEM ── -->
+  <div class="slide" id="s1">
+    <div class="content">
+      <div class="section-label">The Problem</div>
+      <h2 class="t-display-lg">General-purpose AI<br>has two critical gaps.</h2>
+
+      <div class="problem-grid">
+        <div class="problem-card">
+          <div class="problem-num">01</div>
+          <div>
+            <p class="t-body-sm-strong" style="margin-bottom:8px;">No access to your files</p>
+            <p class="t-body-sm">Tools like ChatGPT are trained on public data up to a cutoff date. They have no visibility into your private reports, manuals, or internal documents.</p>
+          </div>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">02</div>
+          <div>
+            <p class="t-body-sm-strong" style="margin-bottom:8px;">Hallucination</p>
+            <p class="t-body-sm">When the model lacks information, it fills the gap with confident-sounding guesses. In academic or professional settings, this is a serious reliability problem.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution-strip">
+        <div class="solution-icon-box">→</div>
+        <div>
+          <p class="t-body-sm-strong" style="margin-bottom:4px;">The fix</p>
+          <p class="t-body-sm" style="color:var(--mute);">Supply the AI with the right passages from your own documents at query time. It reads what you give it — the model becomes a reader, not a guesser.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: WHAT IS RAG ── -->
+  <div class="slide" id="s2">
+    <div class="content">
+      <div class="section-label">Core Concept</div>
+      <h2 class="t-display-lg">Retrieval-Augmented<br>Generation — RAG.</h2>
+
+      <div class="rag-two-col">
+        <div>
+          <p class="t-body-md" style="margin-bottom:var(--sp-xl);">
+            Instead of asking the model to recall facts from its training, RAG fetches the most relevant passages from your document store at the moment you ask. Those passages become the model's reading material — it synthesises an answer from them rather than generating one from memory.
+          </p>
+          <ul class="check-list">
+            <li><span class="check-mark">✓</span><span>Every answer is <strong style="color:var(--ink);font-weight:500;">tied to a real passage</strong> in your files</span></li>
+            <li><span class="check-mark">✓</span><span>Each response shows <strong style="color:var(--ink);font-weight:500;">document name and page number</strong></span></li>
+            <li><span class="check-mark">✓</span><span>Works on <strong style="color:var(--ink);font-weight:500;">private, current files</strong> you control</span></li>
+            <li><span class="check-mark">✓</span><span>If the answer isn't in your documents, the model says so</span></li>
+          </ul>
+        </div>
+
+        <div class="code-card">
+          <div class="code-header">
+            <div class="cmd-traffic">
+              <div class="cmd-dot red"></div>
+              <div class="cmd-dot yellow"></div>
+              <div class="cmd-dot green"></div>
+            </div>
+            <span class="t-caption-sm" style="margin-left:8px;">rag_chain.py</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"># build the end-to-end chain</span><br>
+            <span class="ck">chain</span> = (<br>
+            &nbsp;&nbsp;<span class="cf">get_hybrid_retriever</span>()<br>
+            &nbsp;&nbsp;| <span class="cf">format_docs</span><br>
+            &nbsp;&nbsp;| <span class="cf">prompt</span><br>
+            &nbsp;&nbsp;| <span class="cf">ChatOpenAI</span>(<span class="cs">"gpt-4o-mini"</span>)<br>
+            &nbsp;&nbsp;| <span class="cf">StrOutputParser</span>()<br>
+            )<br><br>
+            <span class="cc"># streams token-by-token to the UI</span><br>
+            answer = chain.<span class="cf">stream</span>(<span class="cs">"your question"</span>)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE: HOW IT WORKS ── -->
+  <div class="slide" id="s-hiw">
+    <div class="content">
+      <div class="section-label">How It Works</div>
+      <h2 class="t-display-lg">Three steps:<br>load, ask, then answer.</h2>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-lg);margin-top:var(--sp-xxl);">
+
+        <!-- Step 1 -->
+        <div class="feature-card" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
+          <div style="display:flex;align-items:center;gap:var(--sp-md);">
+            <div style="width:28px;height:28px;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--mute);flex-shrink:0;">1</div>
+            <p class="t-body-sm-strong">Loading your documents</p>
+          </div>
+          <p class="t-body-sm">You upload a file. The system reads it, cuts it into small overlapping sections, and converts each section into a <strong style="color:var(--ink);font-weight:500;">vector embedding</strong> — turning text into numbers that capture its meaning. Those vectors are stored in a local database called <span class="keycap">ChromaDB</span>.</p>
+          <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
+            <span class="example-chip">PDF · DOCX · TXT · CSV · MD</span>
+            <span class="example-chip">800ch chunks · 150ch overlap</span>
+            <span class="example-chip">ChromaDB · local</span>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="feature-card" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
+          <div style="display:flex;align-items:center;gap:var(--sp-md);">
+            <div style="width:28px;height:28px;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--mute);flex-shrink:0;">2</div>
+            <p class="t-body-sm-strong">Entering your question</p>
+          </div>
+          <p class="t-body-sm">You type your question. It goes through the same embedding process — converted into a <strong style="color:var(--ink);font-weight:500;">vector</strong> and compared against all the stored document vectors to find the sections closest in meaning. Simultaneously, a keyword search scans for exact term matches.</p>
+          <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
+            <span class="example-chip">query → vector</span>
+            <span class="example-chip">semantic similarity search</span>
+            <span class="example-chip">+ BM25 keyword scan</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="feature-card-elevated" style="display:flex;flex-direction:column;gap:var(--sp-lg);">
+          <div style="display:flex;align-items:center;gap:var(--sp-md);">
+            <div style="width:28px;height:28px;background:var(--surface-card);border:1px solid var(--hairline-strong);border-radius:var(--rounded-sm);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--on-dark);flex-shrink:0;">3</div>
+            <p class="t-body-sm-strong">Generating the answer</p>
+          </div>
+          <p class="t-body-sm">The two result sets are merged with weighted scoring, then a local neural reranker scores every candidate and keeps only the most relevant. Those top passages are handed to <strong style="color:var(--ink);font-weight:500;">GPT-4o-mini</strong>, which writes the final answer.</p>
+          <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-top:auto;">
+            <span class="example-chip">60% semantic · 40% keyword</span>
+            <span class="example-chip">CrossEncoder reranker</span>
+            <span class="example-chip">top 5 → GPT-4o-mini</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pipeline-note" style="margin-top:var(--sp-lg);">
+        <div class="note-icon">⚡</div>
+        <p class="t-body-sm">Going beyond basic RAG: most systems stop at a single search. We run <strong style="color:var(--ink);font-weight:500;">two searches in parallel</strong>, merge them with weighted scoring, then apply a <strong style="color:var(--ink);font-weight:500;">neural reranker</strong> to filter out anything that isn't genuinely relevant before the AI sees it.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: PIPELINE ── -->
+  <div class="slide" id="s3">
+    <div class="content">
+      <div class="section-label">Architecture</div>
+      <h2 class="t-display-lg">From query to answer<br>in three stages.</h2>
+
+      <div class="pipeline-row">
+        <div class="pipe-node">
+          <p class="t-caption-sm">Input</p>
+          <p class="t-body-sm-strong">User Query</p>
+          <p class="t-caption-sm" style="color:var(--stone);">plain text</p>
+        </div>
+        <div class="pipe-connector">→</div>
+
+        <div class="pipe-node">
+          <p class="t-caption-sm">Stage 1a</p>
+          <p class="t-body-sm-strong">Vector Search</p>
+          <p class="t-caption-sm" style="color:var(--stone);">semantic · k=10</p>
+        </div>
+        <div class="pipe-plus">+</div>
+        <div class="pipe-node">
+          <p class="t-caption-sm">Stage 1b</p>
+          <p class="t-body-sm-strong">BM25</p>
+          <p class="t-caption-sm" style="color:var(--stone);">keywords · k=10</p>
+        </div>
+
+        <div class="pipe-connector">→</div>
+        <div class="pipe-node">
+          <p class="t-caption-sm">Stage 2</p>
+          <p class="t-body-sm-strong">Ensemble Merge</p>
+          <p class="t-caption-sm" style="color:var(--stone);">60% vec · 40% BM25</p>
+        </div>
+
+        <div class="pipe-connector">→</div>
+        <div class="pipe-node lit">
+          <p class="t-caption-sm">Stage 3</p>
+          <p class="t-body-sm-strong">CrossEncoder</p>
+          <p class="t-caption-sm" style="color:var(--stone);">top 5 → LLM</p>
+        </div>
+        <div class="pipe-connector">→</div>
+        <div class="pipe-node lit">
+          <p class="t-caption-sm">Output</p>
+          <p class="t-body-sm-strong">GPT-4o-mini</p>
+          <p class="t-caption-sm" style="color:var(--stone);">streamed answer</p>
+        </div>
+      </div>
+
+      <div class="pipeline-note">
+        <div class="note-icon">★</div>
+        <p class="t-body-sm">
+          Both retrievers pull up to <strong style="color:var(--ink);font-weight:500;">10 chunks each</strong> — 20 candidates in total. The CrossEncoder scores every <strong style="color:var(--ink);font-weight:500;">(query, chunk) pair</strong> and keeps only the <strong style="color:var(--ink);font-weight:500;">top 5</strong>. Only those reach the language model.
+        </p>
+        <div style="display:flex;gap:var(--sp-sm);margin-left:auto;flex-shrink:0;">
+          <span class="keycap">800ch</span><span class="t-caption-sm">chunk size</span>
+          <span class="keycap">150ch</span><span class="t-caption-sm">overlap</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 5: WHY HYBRID ── -->
+  <div class="slide" id="s4">
+    <div class="content">
+      <div class="section-label">Why Hybrid?</div>
+      <h2 class="t-display-lg">One search method<br>always leaves something out.</h2>
+
+      <div class="vs-grid">
+        <div class="vs-card">
+          <p class="t-body-sm-strong">Semantic search alone</p>
+          <ul class="vs-list">
+            <li>Better for <strong style="color:var(--ink);font-weight:500;">general meaning</strong> — "deadline" retrieves "due date", "cutoff"</li>
+            <li>Handles paraphrasing and synonym variation well</li>
+            <li>Struggles with rare or exact strings: codes, IDs, names</li>
+            <li>Can rank a loosely related passage above a precise one</li>
+          </ul>
+        </div>
+        <div class="vs-center-badge">+</div>
+        <div class="vs-card">
+          <p class="t-body-sm-strong">BM25 keyword search alone</p>
+          <ul class="vs-list">
+            <li>Essential for <strong style="color:var(--ink);font-weight:500;">specific terms</strong> — unique names, product IDs, article codes</li>
+            <li>Deterministic and fast — no embeddings required</li>
+            <li>Blind to synonyms and rephrased questions</li>
+            <li>Scores purely on word frequency, not meaning</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="example-band">
+        <p class="example-q">"What is the deadline for submission?"</p>
+        <div class="example-chips">
+          <span class="example-chip">Semantic → "due date" · "cutoff"</span>
+          <span class="example-chip">BM25 → "deadline"</span>
+          <span class="example-chip">Combined → nothing slips through</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: CROSSENCODER ── -->
+  <div class="slide" id="s5">
+    <div class="content">
+      <div class="section-label">Stage 3 — Reranking</div>
+      <h2 class="t-display-lg">The CrossEncoder<br>cuts noise before the AI reads.</h2>
+
+      <div class="rerank-col">
+        <ol class="step-list">
+          <li class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-body"><p>After the ensemble merge we hold up to <strong>20 candidate passages</strong>.</p></div>
+          </li>
+          <li class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-body"><p>The CrossEncoder reads each <strong>(question, passage) pair jointly</strong> — unlike vector search, which compares two independent embeddings. It produces a fine-grained relevance score for each pair.</p></div>
+          </li>
+          <li class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-body"><p>Passages scoring below the threshold are <strong>dropped entirely</strong>, regardless of their rank in stage 1.</p></div>
+          </li>
+          <li class="step-row">
+            <div class="step-num hi">4</div>
+            <div class="step-body"><p>The <strong>5 highest-scoring passages</strong> are forwarded to GPT-4o-mini as context.</p></div>
+          </li>
+        </ol>
+
+        <div class="model-card">
+          <div class="model-card-header">
+            <p class="t-caption-sm">Reranker model</p>
+            <span class="local-pill"><span class="local-dot"></span>Local · no API cost</span>
+          </div>
+          <div class="model-card-body">
+            <div>
+              <p class="t-caption-sm" style="margin-bottom:6px;">Model identifier</p>
+              <p class="model-name">cross-encoder/ms-marco-MiniLM-L-6-v2</p>
+            </div>
+            <hr class="hairline" />
+            <div>
+              <p class="t-caption-sm" style="margin-bottom:6px;">Source</p>
+              <div style="display:flex;align-items:center;gap:var(--sp-sm);">
+                <div class="app-icon" style="width:32px;height:32px;font-size:16px;">🤗</div>
+                <div>
+                  <p class="t-body-sm-strong" style="font-size:13px;">Hugging Face</p>
+                  <p class="model-desc">Open-source · runs entirely offline</p>
+                </div>
+              </div>
+            </div>
+            <hr class="hairline" />
+            <p class="model-desc">Vector search pre-computes one embedding per chunk independently. The CrossEncoder encodes the question and passage together, giving it a richer signal for ranking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: NUMBERS ── -->
+  <div class="slide" id="s6">
+    <div class="content">
+      <div class="section-label">Configuration & Stack</div>
+      <h2 class="t-display-lg">Numbers that<br>define the system.</h2>
+
+      <div class="stat-grid">
+        <div class="stat-tile">
+          <div class="stat-val">800<sup>ch</sup></div>
+          <div class="stat-desc">characters per chunk, 150ch overlap between adjacent chunks</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-val">10+10</div>
+          <div class="stat-desc">passages retrieved by vector search and BM25 before reranking</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-val">5</div>
+          <div class="stat-desc">passages forwarded to the language model after the CrossEncoder</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-val">60<sup>%</sup></div>
+          <div class="stat-desc">ensemble weight assigned to semantic vector search</div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="weight-card">
+          <p class="t-body-sm-strong" style="margin-bottom:4px;">Retrieval ensemble weights</p>
+          <div class="weight-row">
+            <div class="weight-labels"><span>Vector — semantic meaning</span><span class="pct">60%</span></div>
+            <div class="weight-bar"><div class="weight-fill" style="width:60%;"></div></div>
+          </div>
+          <div class="weight-row">
+            <div class="weight-labels"><span>BM25 — exact keywords</span><span class="pct">40%</span></div>
+            <div class="weight-bar"><div class="weight-fill" style="width:40%;background:var(--stone);"></div></div>
+          </div>
+        </div>
+
+        <div class="stack-card">
+          <div class="stack-chip">
+            <div class="stack-chip-label">Backend</div>
+            <div class="stack-chip-val">Python · FastAPI · LangChain</div>
+          </div>
+          <div class="stack-chip">
+            <div class="stack-chip-label">AI</div>
+            <div class="stack-chip-val">GPT-4o-mini · text-embedding-3-small · CrossEncoder</div>
+          </div>
+          <div class="stack-chip">
+            <div class="stack-chip-label">Frontend</div>
+            <div class="stack-chip-val">Next.js · React 19 · Tailwind</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 8: CONCLUSION ── -->
+  <div class="slide" id="s7">
+    <div class="content">
+      <div class="section-label">Summary</div>
+      <h2 class="t-display-lg">A smarter way to get<br>answers from documents.</h2>
+
+      <div class="conclusion-grid">
+        <div class="conclusion-list">
+          <div class="conclusion-row">
+            <div class="conclusion-row-icon">📄</div>
+            <div class="row-text">
+              <h4>Full-stack application</h4>
+              <p>Python backend with a Next.js web interface — drag-and-drop file upload, ingestion tracking, and real-time streamed answers.</p>
+            </div>
+          </div>
+          <div class="conclusion-row">
+            <div class="conclusion-row-icon">🔍</div>
+            <div class="row-text">
+              <h4>Three-stage hybrid retrieval</h4>
+              <p>Vector search + BM25 ensemble followed by a CrossEncoder reranker — only the most relevant passages reach the model.</p>
+            </div>
+          </div>
+          <div class="conclusion-row">
+            <div class="conclusion-row-icon">✓</div>
+            <div class="row-text">
+              <h4>Verifiable, source-cited answers</h4>
+              <p>Every response includes the document name and page it came from. No hallucination. The reranker runs locally at zero extra cost.</p>
+            </div>
+          </div>
+          <div class="conclusion-row">
+            <div class="conclusion-row-icon">⚙️</div>
+            <div class="row-text">
+              <h4>One file to tune everything</h4>
+              <p>Chunk size, ensemble weights, top-k, model names — all configurable in <span class="keycap">config.py</span> without touching pipeline logic.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:var(--sp-lg);background:var(--surface);border:1px solid var(--hairline-strong);border-radius:var(--rounded-lg);padding:var(--sp-xl) var(--sp-xxl);">
+          <p class="t-body-sm" style="color:var(--mute);line-height:1.7;">
+            Throughout this project, my main focus was making the retrieval process as accurate as possible to minimise hallucination. Every design decision — the hybrid search, the ensemble weights, the CrossEncoder reranker — was driven by one goal: ensuring the model only reads passages that are genuinely relevant before it generates a single word.
+          </p>
+        </div>
+
+        <div class="conclusion-cmd">
+          <div class="cta-block">
+            <div class="cmd-card" style="border:none;border-radius:var(--rounded-lg);">
+              <div class="cmd-header">
+                <div class="cmd-traffic">
+                  <div class="cmd-dot red"></div>
+                  <div class="cmd-dot yellow"></div>
+                  <div class="cmd-dot green"></div>
+                </div>
+                <div class="cmd-search">
+                  <span class="cmd-search-icon">⌕</span>
+                  <span>What is the submission deadline?</span>
+                </div>
+              </div>
+              <div class="cmd-body">
+                <div class="cmd-row active">
+                  <div class="cmd-row-icon">📄</div>
+                  <span class="cmd-row-label">project_brief.pdf · page 3</span>
+                  <div class="cmd-row-hint"><span class="badge-green badge-info">source</span></div>
+                </div>
+                <div class="cmd-row">
+                  <div class="cmd-row-icon">📄</div>
+                  <span class="cmd-row-label">guidelines.docx · page 1</span>
+                  <div class="cmd-row-hint"><span class="badge-green badge-info">source</span></div>
+                </div>
+              </div>
+              <div class="cmd-footer">
+                <span class="t-caption-sm">The deadline is March 15, 2026 at 23:59 CET.</span>
+              </div>
+            </div>
+            <div class="cta-block-text">
+              <p class="t-body-sm" style="color:var(--mute);">Drop in any PDF, Word file, or plain text document and start querying it immediately.</p>
+              <div class="cta-shortcut-row">
+                <span class="keycap">←</span><span class="keycap">→</span>
+                navigate
+                <span style="margin-left:8px;"></span>
+                <span class="keycap">Space</span>
+                next
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- ══════════════════════════════════
+     BOTTOM NAV
+══════════════════════════════════ -->
+<div id="bottom-nav">
+  <button class="nav-btn" id="btn-prev" title="Previous">←</button>
+  <div class="dot-row" id="dot-row"></div>
+  <button class="nav-btn" id="btn-next" title="Next">→</button>
+</div>
+
+<script>
+  const slides   = Array.from(document.querySelectorAll('.slide'));
+  const total    = slides.length;
+  let current    = 0;
+  let animating  = false;
+
+  const dotRow  = document.getElementById('dot-row');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  // build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Slide ' + (i + 1));
+    d.addEventListener('click', () => goTo(i));
+    dotRow.appendChild(d);
+  });
+
+  function updateUI() {
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+  }
+
+  function goTo(next) {
+    if (animating || next === current || next < 0 || next >= total) return;
+    animating = true;
+    const dir = next > current ? 1 : -1;
+    const out = slides[current];
+    const inn = slides[next];
+
+    out.classList.add('exit');
+    out.classList.remove('active');
+
+    inn.style.transform = `translateX(${dir * 24}px)`;
+    inn.style.opacity   = '0';
+    inn.style.transition = 'none';
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      inn.style.transition = 'opacity 0.32s ease, transform 0.32s ease';
+      inn.style.transform  = 'translateX(0)';
+      inn.style.opacity    = '1';
+      inn.classList.add('active');
+    }));
+
+    setTimeout(() => {
+      out.classList.remove('exit');
+      inn.style.transition = inn.style.transform = inn.style.opacity = '';
+      animating = false;
+    }, 360);
+
+    current = next;
+    updateUI();
+  }
+
+  window.goTo = goTo;
+  btnPrev.addEventListener('click', () => goTo(current - 1));
+  btnNext.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); goTo(current + 1); }
+    if (['ArrowLeft','ArrowUp'].includes(e.key))         { e.preventDefault(); goTo(current - 1); }
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 48) goTo(dx < 0 ? current + 1 : current - 1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>

@@ -3,7 +3,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from .retriever import get_retriever
 from .config import LLM_MODEL
-from langchain_core.runnables import RunnablePassthrough
 
 SYSTEM_PROMPT = """You are a helpful assistant that answers questions based on the provided context.
 Use only the context below to answer the question. If the context doesn't contain enough information, say so.
@@ -23,12 +22,7 @@ def build_rag_chain():
         ("user", "{question}"),
     ])
 
-    chain = (
-        {'context': retriever | format_docs, 'question': RunnablePassthrough()}
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
+    chain = prompt | llm | StrOutputParser()
     return chain, retriever
 
 
@@ -40,7 +34,7 @@ def ask(question: str, chain, retriever) -> dict:
 
     try:
         source_docs = retriever.invoke(question)
-        answer = chain.invoke(question)
+        answer = chain.invoke({'context': format_docs(source_docs), 'question': question})
     except Exception as e:
         raise RuntimeError(f"Failed to answer question: {e}") from e
 
@@ -59,8 +53,7 @@ def stream_ask(question: str, chain, retriever) -> dict:
     except Exception as e:
         raise RuntimeError(f"Failed to retrieve documents: {e}") from e
 
-
-    stream = chain.stream(question)
+    stream = chain.stream({'context': format_docs(source_docs), 'question': question})
     return {
         'stream': stream,
         'source_docs': source_docs,
