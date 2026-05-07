@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain_chroma import Chroma
 from langchain_community.docstore.document import Document
 from langchain_openai import OpenAIEmbeddings
@@ -13,6 +15,35 @@ def get_vector_store() -> Chroma:
         embedding_function=get_embeddings(),
         persist_directory=CHROMA_DIR,
     )
+
+def list_ingested_sources() -> list[str]:
+    """Returns a sorted list of unique source file basenames in the vector store."""
+    collection = get_vector_store()._collection
+    all_results = collection.get(include=["metadatas"])
+    sources = {
+        Path(meta.get("source", "")).name
+        for meta in all_results["metadatas"]
+        if meta.get("source")
+    }
+    return sorted(sources)
+
+
+def delete_document(file_name: str) -> int:
+    """
+    Deletes all chunks whose source metadata basename matches file_name.
+    Returns the number of chunks deleted.
+    """
+    collection = get_vector_store()._collection
+    all_results = collection.get(include=["metadatas"])
+    ids_to_delete = [
+        doc_id
+        for doc_id, meta in zip(all_results["ids"], all_results["metadatas"])
+        if Path(meta.get("source", "")).name == file_name
+    ]
+    if ids_to_delete:
+        collection.delete(ids=ids_to_delete)
+    return len(ids_to_delete)
+
 
 def ingest_documents(chunks: list[Document]) -> Chroma:
     """

@@ -3,6 +3,7 @@ import type { FileInfo } from "@/lib/types";
 interface FileListProps {
   files: FileInfo[];
   ingestMessage?: string | null;
+  onDelete?: (fileName: string) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -71,7 +72,7 @@ function FileIcon({ name }: { name: string }) {
   );
 }
 
-export function FileList({ files, ingestMessage }: FileListProps) {
+export function FileList({ files, ingestMessage, onDelete }: FileListProps) {
   if (files.length === 0) {
     return (
       <div className="px-4 py-3">
@@ -89,7 +90,7 @@ export function FileList({ files, ingestMessage }: FileListProps) {
         {files.map((file) => (
           <div
             key={file.name}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-[8px] bg-[#fafafa] border border-[#f0f0f3] hover:border-[#e0e1e6] transition-colors"
+            className="group flex items-center gap-2.5 px-3 py-2 rounded-[8px] bg-[#fafafa] border border-[#f0f0f3] hover:border-[#e0e1e6] transition-colors"
             title={file.errorMessage ?? file.name}
           >
             <FileIcon name={file.name} />
@@ -102,6 +103,18 @@ export function FileList({ files, ingestMessage }: FileListProps) {
                 )}
               </div>
             </div>
+            {onDelete && (
+              <button
+                onClick={() => onDelete(file.name)}
+                className="shrink-0 opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full flex items-center justify-center text-[#b0b4ba] hover:text-[#c0392b] hover:bg-[#fff0f0] transition-all"
+                aria-label={`Delete ${file.name}`}
+                title="Delete"
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
           </div>
         ))}
       </div>

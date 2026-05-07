@@ -9,6 +9,7 @@ interface SidebarProps {
   ingestMessage?: string | null;
   error?: string | null;
   onFiles: (files: FileList | File[]) => void;
+  onDeleteFile?: (fileName: string) => void;
   onNewChat?: () => void;
   onClose?: () => void;
   isMobileOverlay?: boolean;
@@ -21,6 +22,7 @@ export function Sidebar({
   ingestMessage,
   error,
   onFiles,
+  onDeleteFile,
   onNewChat,
   onClose,
   isMobileOverlay = false,
@@ -87,7 +89,7 @@ export function Sidebar({
       {/* File list */}
       {files.length > 0 && (
         <div className="pt-2 border-t border-[#f0f0f3] mt-2">
-          <FileList files={files} ingestMessage={ingestMessage} />
+          <FileList files={files} ingestMessage={ingestMessage} onDelete={onDeleteFile} />
         </div>
       )}
 

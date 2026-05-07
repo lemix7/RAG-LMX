@@ -11,7 +11,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const { messages, isStreaming, sendMessage, clearMessages } = useChat();
-  const { files, isUploading, isIngesting, ingestMessage, error, uploadFiles } = useFiles();
+  const { files, isUploading, isIngesting, ingestMessage, error, uploadFiles, deleteFile } = useFiles();
 
   return (
     <div className="h-full flex flex-col bg-[#f0f0f3]">
@@ -25,6 +25,7 @@ export default function Home() {
           ingestMessage={ingestMessage}
           error={error}
           onFiles={uploadFiles}
+          onDeleteFile={deleteFile}
           onNewChat={clearMessages}
         />
 
@@ -44,6 +45,7 @@ export default function Home() {
               ingestMessage={ingestMessage}
               error={error}
               onFiles={uploadFiles}
+              onDeleteFile={deleteFile}
               onNewChat={clearMessages}
               onClose={() => setSidebarOpen(false)}
               isMobileOverlay
