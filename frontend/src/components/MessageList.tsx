@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "@/lib/types";
 import { ChatMessage } from "./ChatMessage";
+import { FeatherMessageCircle } from "@subframe/core";
 
 interface MessageListProps {
   messages: Message[];
@@ -17,27 +18,24 @@ export function MessageList({ messages }: MessageListProps) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#f0f0f3] border border-[#e0e1e6] flex items-center justify-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path
-              d="M10 2C5.58 2 2 5.13 2 9c0 2.04.92 3.87 2.4 5.18L4 17l3.3-1.32C8.14 16 9.05 16.25 10 16.25 14.42 16.25 18 13.12 18 9S14.42 2 10 2Z"
-              stroke="#b0b4ba"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </svg>
+      <div className="flex min-h-0 w-full grow shrink-0 basis-0 flex-col items-center justify-center gap-4 px-6">
+        <div className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-brand-100">
+          <FeatherMessageCircle className="text-heading-2 font-heading-2 text-brand-600" />
         </div>
-        <p className="text-[15px] font-[600] text-[#1c2024] mb-1">Ask anything</p>
-        <p className="text-[13px] text-[#b0b4ba] max-w-[260px] leading-[1.55]">
-          Upload documents in the sidebar, then ask questions about them.
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-heading-3 font-heading-3 text-default-font text-center">
+            Ask anything
+          </span>
+          <span className="max-w-[320px] text-body font-body text-subtext-color text-center">
+            Upload documents in the sidebar, then ask questions about them.
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5">
+    <div className="flex min-h-0 w-full grow shrink-0 basis-0 flex-col overflow-y-auto px-4 py-6 gap-5">
       {messages.map((message) => (
         <ChatMessage key={message.id} message={message} />
       ))}

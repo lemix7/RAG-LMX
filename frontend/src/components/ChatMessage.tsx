@@ -1,6 +1,7 @@
 import type { Message } from "@/lib/types";
 import { SourceAttribution } from "./SourceAttribution";
 import ReactMarkdown from "react-markdown";
+import { FeatherBrainCircuit } from "@subframe/core";
 
 interface ChatMessageProps {
   message: Message;
@@ -13,7 +14,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div className="flex justify-end animate-fade-in">
         <div className="max-w-[75%]">
-          <div className="bg-[#000000] text-white px-4 py-2.5 rounded-[18px] rounded-br-[4px] text-[15px] leading-[1.55] font-[400] whitespace-pre-wrap break-words">
+          <div className="bg-brand-600 text-neutral-0 px-4 py-2.5 rounded-[18px] rounded-br-[4px] text-body font-body whitespace-pre-wrap break-words">
             {message.content}
           </div>
         </div>
@@ -25,22 +26,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
     <div className="flex justify-start animate-fade-in">
       <div className="max-w-[80%]">
         <div className="flex items-start gap-2.5">
-          <div className="mt-0.5 shrink-0 w-6 h-6 rounded-full bg-[#f0f0f3] border border-[#e0e1e6] flex items-center justify-center">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <circle cx="6" cy="6" r="4" fill="#000" />
-              <circle cx="6" cy="6" r="2" fill="#fff" />
-            </svg>
+          <div className="mt-0.5 shrink-0 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-brand-50 border border-solid border-brand-200">
+            <FeatherBrainCircuit className="text-[10px] text-brand-700" />
           </div>
 
           <div className="flex-1 min-w-0">
             {message.error ? (
-              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-white border border-[#e0e1e6] shadow-[0px_3px_6px_rgba(0,0,0,0.08)]">
-                <p className="text-[14px] text-[#ab6400] leading-[1.55]">⚠️ {message.error}</p>
+              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-default-background border border-solid border-neutral-border shadow-sm">
+                <p className="text-body font-body text-warning-700">⚠️ {message.error}</p>
               </div>
             ) : (
-              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-white border border-[#e0e1e6] shadow-[0px_3px_6px_rgba(0,0,0,0.08)]">
+              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-default-background border border-solid border-neutral-border shadow-sm">
                 {message.content ? (
-                  <div className="text-[15px] text-[#1c2024] leading-[1.55] font-[400] break-words prose prose-sm max-w-none">
+                  <div className="text-body font-body text-default-font break-words prose prose-sm max-w-none">
                     <ReactMarkdown>{message.content}</ReactMarkdown>
                     {message.isStreaming && <span className="cursor-blink ml-0.5" />}
                   </div>
@@ -49,8 +47,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 rounded-full bg-[#94979c]"
-                        style={{ animation: `blink 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                        className="w-1.5 h-1.5 rounded-full bg-neutral-400"
+                        style={{ animation: `pulse-dot 1.2s ease-in-out ${i * 0.2}s infinite` }}
                       />
                     ))}
                   </div>
