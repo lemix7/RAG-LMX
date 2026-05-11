@@ -1,0 +1,91 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - img [ref=e8]
+        - text: RAGbase
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - img [ref=e20]
+          - text: Chat
+        - generic [ref=e22]:
+          - img [ref=e25]
+          - text: Knowledge Base
+        - generic [ref=e29]:
+          - img [ref=e32]
+          - text: Settings
+        - generic [ref=e35]:
+          - img [ref=e38]
+          - text: Admin
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: A
+          - generic [ref=e46]: Alex MorganAdmin
+        - button [ref=e47]:
+          - img [ref=e50]
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - img [ref=e61]
+          - img [ref=e70]
+          - text: Knowledge Base
+          - generic [ref=e75]: 0 Files
+        - generic [ref=e76]:
+          - button "Upload" [ref=e77]:
+            - img [ref=e80]
+            - text: Upload
+          - button "Add Files" [ref=e85]:
+            - img [ref=e88]
+            - text: Add Files
+          - button "Choose File" [ref=e91]
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]:
+            - text: Total Files
+            - generic [ref=e95]:
+              - text: "0"
+              - img [ref=e97]
+          - generic [ref=e100]:
+            - text: Ready
+            - generic [ref=e101]:
+              - text: "0"
+              - img [ref=e103]
+          - generic [ref=e106]:
+            - text: Processing
+            - generic [ref=e107]:
+              - text: "0"
+              - img [ref=e109]
+          - generic [ref=e114]:
+            - text: Error
+            - generic [ref=e115]:
+              - text: "0"
+              - img [ref=e117]
+        - generic [ref=e119]:
+          - generic [ref=e121]:
+            - img [ref=e124]
+            - textbox [ref=e128]:
+              - /placeholder: Search files...
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - img [ref=e133]
+              - text: All Types
+            - generic [ref=e135]: PDF
+            - generic [ref=e136]: DOCX
+            - generic [ref=e137]: TXT
+            - generic [ref=e138]: CSV
+            - generic [ref=e139]: MD
+          - generic [ref=e140]:
+            - button "Sort" [ref=e141]:
+              - img [ref=e144]
+              - text: Sort
+            - button "Filter" [ref=e149]:
+              - img [ref=e152]
+              - text: Filter
+        - generic [ref=e156]:
+          - img [ref=e158]
+          - text: No files yetUpload PDF, DOCX, TXT, CSV, or MD files to build your knowledge base.
+          - button "Add your first file" [ref=e162]:
+            - img [ref=e165]
+            - text: Add your first file
+  - button "Open Next.js Dev Tools" [ref=e173] [cursor=pointer]:
+    - img [ref=e174]

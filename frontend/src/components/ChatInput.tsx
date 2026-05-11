@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, KeyboardEvent } from "react";
+import { ClassBtn } from "@/components/ui/class-btn";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -54,20 +55,9 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           placeholder={disabled ? "Waiting for response…" : "Ask a question about your documents…"}
           className="flex-1 resize-none overflow-hidden bg-transparent text-[15px] text-[#1c2024] placeholder:text-[#b0b4ba] leading-[1.55] outline-none min-h-[24px] max-h-[160px] font-[400] disabled:cursor-not-allowed"
         />
-        <button
-          onClick={handleSend}
-          disabled={!canSend}
-          aria-label="Send message"
-          className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 ${
-            canSend
-              ? "bg-[#000000] text-white hover:bg-[#1c2024] active:scale-95"
-              : "bg-[#f0f0f3] text-[#b0b4ba] cursor-not-allowed"
-          }`}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 12V2M7 2L3 6M7 2L11 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+        <div className={`shrink-0 transition-opacity duration-150 ${!canSend ? "opacity-40 pointer-events-none" : ""}`}>
+          <ClassBtn viewMode="icon" onClick={handleSend} label="Send message" />
+        </div>
       </div>
       <p className="text-center text-[11px] text-[#b0b4ba] mt-2">
         Press Enter to send · Shift+Enter for new line

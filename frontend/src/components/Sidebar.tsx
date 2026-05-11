@@ -1,6 +1,7 @@
 import type { FileInfo } from "@/lib/types";
 import { FileDropZone } from "./FileDropZone";
 import { FileList } from "./FileList";
+import { FeatherLayers } from "@subframe/core";
 
 interface SidebarProps {
   files: FileInfo[];
@@ -37,9 +38,11 @@ export function Sidebar({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-[#f0f0f3]">
-        <div>
-          <h1 className="text-[15px] font-[700] text-[#000000] tracking-[-0.3px]">RAG-LMX</h1>
-          <p className="text-[11px] text-[#b0b4ba] mt-0.5">Chat with your documents</p>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-primary">
+            <FeatherLayers className="text-heading-3 font-heading-3 text-neutral-0" />
+          </div>
+          <span className="text-heading-3 font-heading-3 text-default-font">RAG LMX</span>
         </div>
         {onClose && (
           <button
@@ -59,7 +62,7 @@ export function Sidebar({
         <div className="px-4 pt-3 pb-1">
           <button
             onClick={onNewChat}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[9999px] bg-[#000000] text-white text-[13px] font-[600] hover:bg-[#1c2024] active:scale-[0.98] transition-all duration-150"
+            className="w-full flex items-center cursor-pointer justify-center gap-2 px-3 py-2 rounded-[9999px] bg-[#000000] text-white text-[13px] font-[600] hover:bg-[#1c2024] active:scale-[0.98] transition-all duration-150"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
               <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>

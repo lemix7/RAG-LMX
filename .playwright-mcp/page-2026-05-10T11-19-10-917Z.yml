@@ -1,0 +1,38 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - button "Open menu" [ref=e4]:
+        - img [ref=e5]
+      - heading "RAG-LMX" [level=1] [ref=e8]
+    - generic [ref=e9]:
+      - complementary [ref=e10]:
+        - generic [ref=e12]:
+          - heading "RAG-LMX" [level=1] [ref=e13]
+          - paragraph [ref=e14]: Chat with your documents
+        - button "New Chat" [ref=e16]:
+          - img [ref=e17]
+          - text: New Chat
+        - paragraph [ref=e20]: Documents
+        - generic [ref=e21]:
+          - button "Choose File" [ref=e22]
+          - button "Upload documents" [ref=e23]:
+            - img [ref=e25]
+            - generic [ref=e28]:
+              - paragraph [ref=e29]: Drop files or click to browse
+              - paragraph [ref=e30]: PDF, DOCX, TXT, MD, CSV
+        - paragraph [ref=e32]: "Supported: PDF, DOCX, TXT, MD, CSV"
+      - main [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - img [ref=e37]
+            - paragraph [ref=e39]: Ask anything
+            - paragraph [ref=e40]: Upload documents in the sidebar, then ask questions about them.
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - textbox "Ask a question about your documents…" [ref=e44]
+              - button "Send message" [disabled] [ref=e45]:
+                - img [ref=e46]
+            - paragraph [ref=e48]: Press Enter to send · Shift+Enter for new line
+  - button "Open Next.js Dev Tools" [ref=e54] [cursor=pointer]:
+    - img [ref=e55]
+  - alert [ref=e58]
