@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 .claude/
+.playwright-mcp
 
 # C extensions
 *.so
