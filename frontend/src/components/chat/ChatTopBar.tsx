@@ -1,45 +1,58 @@
 "use client";
 
-import { IconButton } from "@/ui/components/IconButton";
+import { useEffect, useState } from "react";
 import {
-  FeatherBrainCircuit,
-  FeatherMenu,
   FeatherMessageSquare,
   FeatherMoreHorizontal,
 } from "@subframe/core";
+import { getModel } from "@/lib/api";
 
-interface ChatTopBarProps {
-  onMenuOpen: () => void;
-}
+export function ChatTopBar() {
+  const [model, setModel] = useState<string>("");
 
-export function ChatTopBar({ onMenuOpen }: ChatTopBarProps) {
+  useEffect(() => {
+    getModel().then(setModel).catch(() => {});
+  }, []);
+
   return (
-    <div className="flex h-14 w-full flex-none items-center justify-between  px-6 mobile:px-4">
-      <div className="flex items-center gap-3">
-        <IconButton
-          className="hidden mobile:flex"
-          variant="neutral-tertiary"
-          icon={<FeatherMenu />}
-          onClick={onMenuOpen}
-        />
-        <div className="hidden items-center gap-2 mobile:flex">
-          <div className="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-brand-600">
-            <FeatherBrainCircuit className="text-caption-bold font-caption-bold text-neutral-950" />
-          </div>
-        </div>
-        <FeatherMessageSquare className="text-heading-3 font-heading-3 text-brand-700 mobile:hidden" />
-        <span className="text-heading-2 font-heading-2 text-default-font">Document Assistant</span>
+    <div
+      style={{
+        display: "flex",
+        height: 56,
+        width: "100%",
+        flexShrink: 0,
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottom: "1px solid #1f2228",
+        padding: "0 24px",
+        background: "#0c0c0b",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <FeatherMessageSquare style={{ width: 16, height: 16, color: "#ffffff" }} />
+        <span style={{ fontSize: 16, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>
+          Document Assistant
+        </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-caption font-caption text-success-500 rounded-md border border-solid border-success-400 bg-success-50 px-2 py-1">
-          GPT-4 Turbo
-        </span>
-        <IconButton
-          variant="neutral-tertiary"
-          icon={<FeatherMoreHorizontal />}
-          onClick={() => {}}
-        />
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {model && (
+          <span style={{
+            fontSize: 11,
+            fontFamily: "var(--font-space-mono), ui-monospace, monospace",
+            letterSpacing: "0.08em",
+            color: "#7d8187",
+            border: "1px solid #1f2228",
+            borderRadius: 9999,
+            padding: "3px 10px",
+            background: "transparent",
+          }}>
+            {model}
+          </span>
+        )}
+        <button style={{ background: "none", border: "none", color: "#ffffff", cursor: "pointer", display: "flex", alignItems: "center", padding: 4 }}>
+          <FeatherMoreHorizontal style={{ width: 16, height: 16 }} />
+        </button>
       </div>
     </div>
   );

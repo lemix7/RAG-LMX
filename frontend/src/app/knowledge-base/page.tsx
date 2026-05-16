@@ -77,7 +77,7 @@ export default function KnowledgeBasePage() {
           onUploadFiles={uploadFiles}
         />
 
-        <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-6 px-8 py-6 mobile:px-4">
+        <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-6 px-6 py-6 mobile:px-4">
           <StatCards
             total={files.length}
             ready={ready}
@@ -92,7 +92,7 @@ export default function KnowledgeBasePage() {
             onFilterChange={handleFilterChange}
           />
 
-          <div className="flex w-full items-start overflow-hidden rounded-lg border border-solid border-neutral-border overflow-x-auto">
+          <div style={{ width: "100%", overflow: "hidden", overflowX: "auto", border: "1px solid #1f2228", background: "#0c0c0b" }}>
             <FileTable
               files={files}
               filtered={filtered}

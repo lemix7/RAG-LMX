@@ -1,6 +1,4 @@
 import React from "react";
-import { Badge } from "@/ui/components/Badge";
-import { Table } from "@/ui/components/Table";
 import {
   FeatherAlertCircle,
   FeatherCheckCircle,
@@ -13,96 +11,106 @@ import {
 import type { FileInfo } from "@/lib/types";
 import { formatSize, getExt, simulateChunks, simulateDate } from "./utils";
 
+const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
+const MONO = "var(--font-space-mono), ui-monospace, monospace";
+
 interface FileRowProps {
   file: FileInfo;
   onDelete?: (name: string) => void;
 }
 
-export function FileRow({ file, onDelete }: FileRowProps) {
-  const ext = getExt(file.name);
-
-  const iconBg =
-    ext === "PDF" ? "bg-error-100" :
-    ext === "DOCX" || ext === "DOC" ? "bg-brand-100" :
-    ext === "CSV" ? "bg-success-100" :
-    ext === "TXT" ? "bg-warning-100" :
-    "bg-neutral-100";
-
-  const iconColor =
-    ext === "PDF" ? "text-error-700" :
-    ext === "DOCX" || ext === "DOC" ? "text-brand-700" :
-    ext === "CSV" ? "text-success-700" :
-    ext === "TXT" ? "text-warning-700" :
-    "text-neutral-500";
-
-  const FileIcon = ext === "CSV" ? FeatherFileSpreadsheet :
-    ext === "MD" ? FeatherFileCode : FeatherFileText;
-
-  const typeBadgeVariant: React.ComponentProps<typeof Badge>["variant"] =
-    ext === "PDF" ? "error" :
-    ext === "DOCX" || ext === "DOC" ? "brand" :
-    ext === "CSV" ? "success" :
-    ext === "TXT" ? "warning" :
-    "neutral";
-
-  const statusBadge = () => {
-    switch (file.status) {
-      case "ingested":
-        return <Badge variant="success" icon={<FeatherCheckCircle />}>Ready</Badge>;
-      case "ingesting":
-      case "uploading":
-        return <Badge variant="brand" icon={<FeatherLoader />}>Processing</Badge>;
-      case "error":
-        return <Badge variant="error" icon={<FeatherAlertCircle />}>Error</Badge>;
-      default:
-        return <Badge variant="neutral">Uploaded</Badge>;
-    }
-  };
+function TypePill({ ext }: { ext: string }) {
+  const color =
+    ext === "PDF" ? "#f05070" :
+    ext === "DOCX" || ext === "DOC" ? "#2563eb" :
+    ext === "CSV" ? "#3a9a4a" :
+    ext === "TXT" ? "#c47800" :
+    "#a0a4ab";
 
   return (
-    <Table.Row clickable>
-      <Table.Cell>
-        <div className="flex items-center gap-2">
-          <div className={`flex h-7 w-7 flex-none items-center justify-center rounded-[4px] ${iconBg}`}>
-            <FileIcon className={`text-caption-bold font-caption-bold ${iconColor}`} />
-          </div>
-          <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+    <span style={{
+      fontSize: 10,
+      fontFamily: MONO,
+      letterSpacing: "0.1em",
+      color,
+      border: `1px solid ${color}`,
+      borderRadius: 9999,
+      padding: "2px 8px",
+      opacity: 0.85,
+    }}>
+      {ext}
+    </span>
+  );
+}
+
+function StatusPill({ status }: { status: FileInfo["status"] }) {
+  const map: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+    ingested: { label: "Ready", color: "#3a9a4a", icon: <FeatherCheckCircle style={{ width: 11, height: 11 }} /> },
+    ingesting: { label: "Processing", color: "#2563eb", icon: <FeatherLoader style={{ width: 11, height: 11 }} /> },
+    uploading: { label: "Uploading", color: "#2563eb", icon: <FeatherLoader style={{ width: 11, height: 11 }} /> },
+    error: { label: "Error", color: "#f05070", icon: <FeatherAlertCircle style={{ width: 11, height: 11 }} /> },
+  };
+  const s = map[status] ?? { label: "Uploaded", color: "#a0a4ab", icon: null };
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: MONO, letterSpacing: "0.08em", color: s.color, border: `1px solid ${s.color}`, borderRadius: 9999, padding: "2px 8px", opacity: 0.85 }}>
+      {s.icon}{s.label}
+    </span>
+  );
+}
+
+const CELL_STYLE: React.CSSProperties = {
+  padding: "12px 16px",
+  borderBottom: "1px solid #1f2228",
+  verticalAlign: "middle",
+  fontSize: 13,
+  fontFamily: FONT,
+  letterSpacing: "-0.025em",
+  color: "#7d8187",
+  whiteSpace: "nowrap",
+};
+
+export function FileRow({ file, onDelete }: FileRowProps) {
+  const ext = getExt(file.name);
+  const FileIcon = ext === "CSV" ? FeatherFileSpreadsheet : ext === "MD" ? FeatherFileCode : FeatherFileText;
+
+  const iconColor =
+    ext === "PDF" ? "#f05070" :
+    ext === "DOCX" || ext === "DOC" ? "#2563eb" :
+    ext === "CSV" ? "#3a9a4a" :
+    ext === "TXT" ? "#c47800" :
+    "#a0a4ab";
+
+  return (
+    <tr style={{ transition: "background 0.12s" }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#0f0f0e")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+    >
+      <td style={{ ...CELL_STYLE, maxWidth: 260 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <FileIcon style={{ width: 15, height: 15, color: iconColor, flexShrink: 0 }} />
+          <span style={{ color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em" }}>
             {file.name}
           </span>
         </div>
-      </Table.Cell>
-      <Table.Cell>
-        <Badge variant={typeBadgeVariant}>{ext}</Badge>
-      </Table.Cell>
-      <Table.Cell>
-        <span className="whitespace-nowrap text-body font-body text-subtext-color">
-          {formatSize(file.size)}
-        </span>
-      </Table.Cell>
-      <Table.Cell>
-        <span className="whitespace-nowrap text-body font-body text-subtext-color">
-          {simulateDate(file)}
-        </span>
-      </Table.Cell>
-      <Table.Cell>{statusBadge()}</Table.Cell>
-      <Table.Cell>
-        <span className="whitespace-nowrap text-body font-body text-subtext-color">
-          {simulateChunks(file)}
-        </span>
-      </Table.Cell>
-      <Table.Cell>
-        <div className="flex items-center justify-end gap-1">
-          {onDelete && (
-            <button
-              onClick={() => onDelete(file.name)}
-              className="flex h-6 w-6 flex-none items-center justify-center rounded-md text-subtext-color transition-all hover:bg-error-50 hover:text-error-600 cursor-pointer"
-              aria-label={`Delete ${file.name}`}
-            >
-              <FeatherTrash2 className="text-[14px]" />
-            </button>
-          )}
-        </div>
-      </Table.Cell>
-    </Table.Row>
+      </td>
+      <td style={CELL_STYLE}><TypePill ext={ext} /></td>
+      <td style={CELL_STYLE}>{formatSize(file.size)}</td>
+      <td style={CELL_STYLE}>{simulateDate(file)}</td>
+      <td style={CELL_STYLE}><StatusPill status={file.status} /></td>
+      <td style={CELL_STYLE}>{simulateChunks(file)}</td>
+      <td style={{ ...CELL_STYLE, textAlign: "right" }}>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(file.name)}
+            style={{ background: "none", border: "none", color: "#a0a4ab", cursor: "pointer", padding: 4, display: "inline-flex", alignItems: "center", borderRadius: 4, transition: "color 0.15s" }}
+            aria-label={`Delete ${file.name}`}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#f05070")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#a0a4ab")}
+          >
+            <FeatherTrash2 style={{ width: 14, height: 14 }} />
+          </button>
+        )}
+      </td>
+    </tr>
   );
 }

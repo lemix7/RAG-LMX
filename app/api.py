@@ -7,7 +7,7 @@ from app.document_loader import load_documents
 from app.text_splitter import split_documents
 from app.vector_store import ingest_documents, delete_document
 from app.rag_chain import build_rag_chain, stream_ask
-from app.config import DOCS_DIR
+from app.config import DOCS_DIR, LLM_MODEL
 from app.file_registry import load_registry, remove_from_registry
 
 import json
@@ -45,6 +45,11 @@ class QuestionRequest(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/model")
+def get_model():
+    return {"model": LLM_MODEL}
 
 
 @app.get('/')

@@ -1,7 +1,9 @@
 import type { Message } from "@/lib/types";
 import { SourceAttribution } from "./SourceAttribution";
 import ReactMarkdown from "react-markdown";
-import { FeatherBrainCircuit } from "@subframe/core";
+import { FeatherBot } from "@subframe/core";
+
+const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
 
 interface ChatMessageProps {
   message: Message;
@@ -12,9 +14,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   if (isUser) {
     return (
-      <div className="flex justify-end animate-fade-in">
-        <div className="max-w-[75%]">
-          <div className="bg-brand-600 text-neutral-0 px-4 py-2.5 rounded-[18px] rounded-br-[4px] text-body font-body whitespace-pre-wrap break-words">
+      <div style={{ display: "flex", justifyContent: "flex-end" }} className="animate-fade-in">
+        <div style={{ maxWidth: "72%" }}>
+          <div style={{
+            background: "#1f2228",
+            border: "1px solid #474747",
+            color: "#ffffff",
+            padding: "10px 16px",
+            borderRadius: "18px 18px 4px 18px",
+            fontSize: 15,
+            fontFamily: FONT,
+            fontWeight: 400,
+            letterSpacing: "-0.025em",
+            lineHeight: 1.5,
+            wordBreak: "break-word",
+            whiteSpace: "pre-wrap",
+          }}>
             {message.content}
           </div>
         </div>
@@ -23,43 +38,38 @@ export function ChatMessage({ message }: ChatMessageProps) {
   }
 
   return (
-    <div className="flex justify-start animate-fade-in">
-      <div className="max-w-[80%]">
-        <div className="flex items-start gap-2.5">
-          <div className="mt-0.5 shrink-0 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-brand-50 border border-solid border-brand-200">
-            <FeatherBrainCircuit className="text-[10px] text-brand-700" />
-          </div>
+    <div style={{ display: "flex", justifyContent: "flex-start" }} className="animate-fade-in">
+      <div style={{ maxWidth: "80%", display: "flex", alignItems: "flex-start", gap: 10 }}>
+        {/* Bot avatar */}
+        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#1f2228", border: "1px solid #1a3568", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+          <FeatherBot style={{ width: 14, height: 14, color: "#2563eb" }} />
+        </div>
 
-          <div className="flex-1 min-w-0">
-            {message.error ? (
-              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-default-background border border-solid border-neutral-border shadow-sm">
-                <p className="text-body font-body text-warning-700">⚠️ {message.error}</p>
-              </div>
-            ) : (
-              <div className="px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-default-background border border-solid border-neutral-border shadow-sm">
-                {message.content ? (
-                  <div className="text-body font-body text-default-font break-words prose prose-sm max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                    {message.isStreaming && <span className="cursor-blink ml-0.5" />}
-                  </div>
-                ) : message.isStreaming ? (
-                  <div className="flex items-center gap-1 py-1">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="w-1.5 h-1.5 rounded-full bg-neutral-400"
-                        style={{ animation: `pulse-dot 1.2s ease-in-out ${i * 0.2}s infinite` }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {message.error ? (
+            <div style={{ padding: "10px 16px", borderRadius: "18px 18px 18px 4px", background: "#0c0c0b", border: "1px solid #1f2228" }}>
+              <p style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", color: "#f05070", margin: 0 }}>⚠ {message.error}</p>
+            </div>
+          ) : (
+            <div style={{ padding: "10px 16px", borderRadius: "18px 18px 18px 4px", background: "#0c0c0b", border: "1px solid #1f2228" }}>
+              {message.content ? (
+                <div style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.6, color: "#ffffff", wordBreak: "break-word" }} className="prose prose-sm max-w-none prose-invert">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                  {message.isStreaming && <span className="cursor-blink ml-0.5" />}
+                </div>
+              ) : message.isStreaming ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 0" }}>
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#474747", display: "inline-block", animation: `pulse-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          )}
 
-            {!message.isStreaming && message.sources && message.sources.length > 0 && (
-              <SourceAttribution sources={message.sources} />
-            )}
-          </div>
+          {!message.isStreaming && message.sources && message.sources.length > 0 && (
+            <SourceAttribution sources={message.sources} />
+          )}
         </div>
       </div>
     </div>

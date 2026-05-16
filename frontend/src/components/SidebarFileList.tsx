@@ -36,14 +36,15 @@ interface SidebarFileListProps {
 
 export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
   return (
-    <div className="flex w-full flex-col items-start gap-1">
-      <span className="text-caption-bold font-caption-bold text-subtext-color px-3 mb-1">
+    <div className="flex w-full flex-col items-start gap-1" style={{ padding: "12px 12px" }}>
+      <span className="text-caption-bold font-caption-bold text-subtext-color mb-1" style={{ fontFamily: "var(--font-space-mono), ui-monospace, monospace", fontSize: 11, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
         Knowledge Source ({files.length})
       </span>
       {files.map((file) => (
         <div
           key={file.name}
-          className="group/file flex w-full items-center gap-3 rounded-md border border-solid border-neutral-border bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-100"
+          className="group/file flex w-full items-center gap-3 rounded-md border border-solid transition-colors"
+          style={{ background: "#1f2228", border: "1px solid #2a2d34", padding: "10px 12px", borderRadius: 8 }}
           title={file.errorMessage ?? file.name}
         >
           <FileIcon name={file.name} />

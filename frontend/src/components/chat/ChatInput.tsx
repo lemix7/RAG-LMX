@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, KeyboardEvent } from "react";
-import { IconButton } from "@/ui/components/IconButton";
-import { FeatherArrowUp, FeatherPlus } from "@subframe/core";
+import { FeatherArrowUp, FeatherPaperclip } from "@subframe/core";
 
 interface ChatInputProps {
   isStreaming: boolean;
@@ -12,6 +11,7 @@ interface ChatInputProps {
 
 export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
+  const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = useCallback(() => {
@@ -42,36 +42,101 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
   const canSend = inputValue.trim().length > 0 && !isStreaming;
 
   return (
-    <div className="flex w-full flex-col items-center gap-2 px-6 py-4">
-      <div className="flex w-full items-center gap-2 rounded-xl border border-solid border-neutral-border bg-default-background px-4 py-3 transition-all focus-within:border-brand-primary focus-within:ring-1 focus-within:ring-brand-primary">
-        <IconButton
-          variant="neutral-tertiary"
-          size="small"
-          icon={<FeatherPlus />}
+    <div style={{ display: "flex", width: "100%", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 24px 20px" }}>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          maxWidth: 720,
+          alignItems: "flex-end",
+          gap: 8,
+          background: "#0c0c0b",
+          border: `1px solid ${focused ? "#2563eb" : "#1f2228"}`,
+          borderRadius: 24,
+          padding: "12px 16px",
+          // boxShadow: focused ? "rgb(113,113,122) 0px 0px 0px 2px" : "none",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+        }}
+      >
+        <button
           onClick={() => fileInputRef.current?.click()}
-        />
+          style={{
+            background: "none",
+            border: "none",
+            color: "#a0a4ab",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            padding: 4,
+            flexShrink: 0,
+            marginBottom: 2,
+            transition: "color 0.15s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#a0a4ab")}
+        >
+          <FeatherPaperclip style={{ width: 15, height: 15 }} />
+        </button>
+
         <textarea
           ref={textareaRef}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           disabled={isStreaming}
           rows={1}
           placeholder={isStreaming ? "Waiting for response…" : "Ask a question about your documents..."}
-          className="min-h-[24px] grow shrink-0 basis-0 resize-none overflow-hidden bg-transparent text-body font-body text-default-font outline-none placeholder:text-subtext-color disabled:cursor-not-allowed"
+          style={{
+            flex: 1,
+            resize: "none",
+            overflow: "hidden",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            fontSize: 15,
+            fontFamily: "var(--font-inter), ui-sans-serif, sans-serif",
+            fontWeight: 400,
+            letterSpacing: "-0.025em",
+            lineHeight: 1.5,
+            color: "#ffffff",
+            minHeight: 24,
+            maxHeight: 160,
+          }}
         />
-        <IconButton
-          className="bg-brand-100 rounded-md"
-          variant="neutral-tertiary"
-          size="small"
-          icon={<FeatherArrowUp />}
-          disabled={!canSend}
+
+        <button
           onClick={handleSend}
-        />
+          disabled={!canSend}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 9999,
+            background: canSend ? "#ffffff" : "#1f2228",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: canSend ? "pointer" : "not-allowed",
+            flexShrink: 0,
+            transition: "background 0.15s, opacity 0.15s",
+            opacity: canSend ? 1 : 0.35,
+          }}
+        >
+          <FeatherArrowUp style={{ width: 14, height: 14, color: canSend ? "#0c0c0b" : "#a0a4ab" }} />
+        </button>
       </div>
-      <span className="text-caption font-caption text-subtext-color text-center">
-        Press Enter to send · Shift+Enter for new line
+
+      <span style={{
+        fontSize: 11,
+        fontFamily: "var(--font-space-mono), ui-monospace, monospace",
+        letterSpacing: "0.08em",
+        color: "#a0a4ab",
+        textAlign: "center",
+      }}>
+        Enter to send · Shift+Enter for new line
       </span>
     </div>
   );

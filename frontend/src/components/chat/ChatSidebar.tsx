@@ -1,24 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar } from "@/ui/components/Avatar";
-import { IconButton } from "@/ui/components/IconButton";
-import { SidebarWithSections } from "@/ui/components/SidebarWithSections";
 import { SidebarFileList } from "@/components/SidebarFileList";
 import {
   FeatherDatabase,
   FeatherLayoutDashboard,
+  FeatherLayers,
   FeatherMessageSquare,
-  FeatherMoreHorizontal,
   FeatherSettings,
   FeatherUploadCloud,
-  FeatherZap,
+  FeatherUser,
 } from "@subframe/core";
 import type { FileInfo } from "@/lib/types";
 
+const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
+const MONO = "var(--font-space-mono), ui-monospace, monospace";
+
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  selected?: boolean;
+  href?: string;
+}
+
+function NavItem({ icon, label, selected, href }: NavItemProps) {
+  const content = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "8px 12px",
+        borderRadius: 8,
+        background: selected ? "#1f2228" : "transparent",
+        color: selected ? "#ffffff" : "#a0a4ab",
+        cursor: "pointer",
+        transition: "background 0.15s, color 0.15s",
+        fontSize: 15,
+        fontFamily: FONT,
+        letterSpacing: "-0.025em",
+        userSelect: "none",
+      }}
+      onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.background = "#1f2228"; e.currentTarget.style.color = "#ffffff"; } }}
+      onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#a0a4ab"; } }}
+    >
+      <span style={{ width: 16, height: 16, display: "flex", alignItems: "center", flexShrink: 0, color: selected ? "#ffffff" : "#a0a4ab" }}>
+        {icon}
+      </span>
+      {label}
+    </div>
+  );
+
+  if (href) return <Link href={href} style={{ textDecoration: "none" }}>{content}</Link>;
+  return content;
+}
+
 interface ChatSidebarProps {
   files: FileInfo[];
-  isUploading: boolean; 
+  isUploading: boolean;
   isIngesting: boolean;
   error?: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -36,99 +75,113 @@ export function ChatSidebar({
   onDeleteFile,
 }: ChatSidebarProps) {
   return (
-    <SidebarWithSections
-      className="h-auto w-72 flex-none self-stretch"
-      header={
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 flex-none items-center justify-center rounded-md bg-brand-600">
-            <FeatherZap className="text-caption-bold font-caption-bold text-neutral-0" />
-          </div>
-          <span className="text-body-bold font-body-bold text-default-font">RAG LMX</span>
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      width: 320,
+      height: "100%",
+      background: "#0c0c0b",
+      borderRight: "1px solid #1f2228",
+      flexShrink: 0,
+    }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 16px 16px", borderBottom: "1px solid #1f2228" }}>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <FeatherLayers style={{ width: 15, height: 15, color: "#ffffff" }} />
         </div>
-      }
-      footer={
-        <>
-          <div className="flex grow shrink-0 basis-0 items-center gap-2">
-            <Avatar>A</Avatar>
-            <div className="flex flex-col items-start">
-              <span className="text-caption-bold font-caption-bold text-default-font">Alex Morgan</span>
-              <span className="text-caption font-caption text-subtext-color">Admin</span>
-            </div>
-          </div>
-          <IconButton size="small" icon={<FeatherMoreHorizontal />} onClick={() => {}} />
-        </>
-      }
-    >
-      <SidebarWithSections.NavItem icon={<FeatherMessageSquare />} selected>
-        Chat
-      </SidebarWithSections.NavItem>
-      <Link href="/knowledge-base" className="contents">
-        <SidebarWithSections.NavItem icon={<FeatherDatabase />} selected={false}>
-          Knowledge Base
-        </SidebarWithSections.NavItem>
-      </Link>
-      <SidebarWithSections.NavItem icon={<FeatherSettings />} selected={false}>
-        Settings
-      </SidebarWithSections.NavItem>
-      <SidebarWithSections.NavItem icon={<FeatherLayoutDashboard />} selected={false}>
-        Admin
-      </SidebarWithSections.NavItem>
+        <span style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>RAG LMX</span>
+      </div>
 
-      <div className="flex w-full flex-col items-start gap-4 pt-6">
-        <div className="flex w-full flex-col items-start gap-2">
-          <span className="text-caption-bold font-caption-bold text-subtext-color px-3">
-            Upload Files
-          </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.docx,.doc,.txt,.md,.csv"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files) onUploadFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || isIngesting}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-neutral-border bg-neutral-50 px-4 py-6 cursor-pointer transition-colors hover:border-brand-primary hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isUploading || isIngesting ? (
-              <>
-                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-default-background">
-                  <div className="w-4 h-4 rounded-full border-2 border-neutral-200 border-t-brand-600 animate-spin" />
-                </div>
-                <span className="text-caption-bold font-caption-bold text-default-font text-center">
-                  {isIngesting ? "Processing…" : "Uploading…"}
+      {/* Nav */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px" }}>
+        <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" selected href="/" />
+        <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" />
+        <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" />
+        <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" />
+      </div>
+
+      {/* Upload section */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px", borderTop: "1px solid #1f2228" }}>
+        <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
+          Upload Files
+        </span>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.docx,.doc,.txt,.md,.csv"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            if (e.target.files) onUploadFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading || isIngesting}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "20px 16px",
+            background: "transparent",
+            border: "1px dashed #1f2228",
+            borderRadius: 8,
+            cursor: isUploading || isIngesting ? "not-allowed" : "pointer",
+            opacity: isUploading || isIngesting ? 0.6 : 1,
+            transition: "border-color 0.15s",
+          }}
+          onMouseEnter={(e) => { if (!isUploading && !isIngesting) e.currentTarget.style.borderColor = "#474747"; }}
+          onMouseLeave={(e) => { if (!isUploading && !isIngesting) e.currentTarget.style.borderColor = "#1f2228"; }}
+        >
+          {isUploading || isIngesting ? (
+            <>
+              <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #1f2228", borderTopColor: "#2563eb", animation: "spin 0.8s linear infinite" }} />
+              <span style={{ fontSize: 12, fontFamily: FONT, color: "#7d8187", letterSpacing: "-0.025em" }}>
+                {isIngesting ? "Processing…" : "Uploading…"}
+              </span>
+            </>
+          ) : (
+            <>
+              <FeatherUploadCloud style={{ width: 18, height: 18, color: "#fff" }} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <span style={{ fontSize: 12, fontFamily: FONT, color: "#ffffff", letterSpacing: "-0.025em", textAlign: "center" }}>
+                  Drop files or click to browse
                 </span>
-              </>
-            ) : (
-              <>
-                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-default-background">
-                  <FeatherUploadCloud className="text-body font-body text-subtext-color" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-caption-bold font-caption-bold text-default-font text-center">
-                    Drop files or click to browse
-                  </span>
-                  <span className="font-['Public_Sans'] text-[10px] font-[400] leading-[15px] text-subtext-color text-center">
-                    PDF, DOCX, TXT, MD, CSV
-                  </span>
-                </div>
-              </>
-            )}
-          </button>
-          {error && (
-            <p className="text-[11px] text-error-600 px-1">{error}</p>
+                <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab", textAlign: "center" }}>
+                  PDF · DOCX · TXT · MD · CSV
+                </span>
+              </div>
+            </>
           )}
-        </div>
+        </button>
 
-        {files.length > 0 && (
-          <SidebarFileList files={files} onDelete={onDeleteFile} />
+        {error && (
+          <p style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#f05070", margin: 0 }}>{error}</p>
         )}
       </div>
-    </SidebarWithSections>
+
+      {/* File list */}
+      {files.length > 0 && (
+        <div style={{ flex: 1, overflow: "hidden", borderTop: "1px solid #1f2228" }}>
+          <SidebarFileList files={files} onDelete={onDeleteFile} />
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderTop: "1px solid #1f2228", marginTop: "auto" }}>
+        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#1f2228", border: "1px solid #474747", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <FeatherUser style={{ width: 14, height: 14, color: "#7d8187" }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <span style={{ fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>Alex Morgan</span>
+          <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab" }}>Admin</span>
+        </div>
+      </div>
+    </div>
   );
 }

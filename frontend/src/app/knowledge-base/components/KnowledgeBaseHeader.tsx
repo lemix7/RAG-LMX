@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge } from "@/ui/components/Badge";
-import { Button } from "@/ui/components/Button";
-import { FeatherDatabase, FeatherLayers, FeatherLoader, FeatherPlus } from "@subframe/core";
+import { FeatherDatabase, FeatherLoader, FeatherPlus } from "@subframe/core";
+
+const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
+const MONO = "var(--font-space-mono), ui-monospace, monospace";
 
 interface KnowledgeBaseHeaderProps {
   fileCount: number;
@@ -21,40 +22,69 @@ export function KnowledgeBaseHeader({
   fileInputRef,
   onUploadFiles,
 }: KnowledgeBaseHeaderProps) {
+  const busy = isUploading || isIngesting;
+
   return (
-    <div className="flex w-full items-center justify-between border-b border-solid border-neutral-border px-8 py-4 mobile:px-4">
-      <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 mr-2 mobile:flex">
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-brand-primary">
-            <FeatherLayers className="text-heading-3 font-heading-3 text-neutral-0" />
-          </div>
-        </div>
-        <FeatherDatabase className="text-heading-3 font-heading-3 text-brand-700 mobile:hidden" />
-        <span className="text-heading-2 font-heading-2 text-default-font">Knowledge Base</span>
-        <Badge variant="neutral">{fileCount} Files</Badge>
+    <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #1f2228", padding: "14px 24px", background: "#0c0c0b" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <FeatherDatabase style={{ width: 16, height: 16, color: "#ffffff" }} />
+        <span style={{ fontSize: 16, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>
+          Knowledge Base
+        </span>
+        <span style={{
+          fontSize: 11,
+          fontFamily: MONO,
+          letterSpacing: "0.08em",
+          color: "#7d8187",
+          border: "1px solid #1f2228",
+          borderRadius: 9999,
+          padding: "2px 8px",
+        }}>
+          {fileCount} files
+        </span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {error && (
-          <span className="text-caption font-caption text-error-600 max-w-[200px] truncate">
+          <span style={{ fontSize: 12, fontFamily: MONO, letterSpacing: "0.06em", color: "#f05070", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {error}
           </span>
         )}
-        <Button
-          variant="brand-secondary"
-          size="medium"
-          icon={isUploading || isIngesting ? <FeatherLoader /> : <FeatherPlus />}
-          disabled={isUploading || isIngesting}
+        <button
+          disabled={busy}
           onClick={() => fileInputRef.current?.click()}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "7px 16px",
+            background: busy ? "#1f2228" : "#ffffff",
+            color: "#0c0c0b",
+            border: "none",
+            borderRadius: 9999,
+            fontSize: 13,
+            fontFamily: FONT,
+            letterSpacing: "-0.025em",
+            cursor: busy ? "not-allowed" : "pointer",
+            opacity: busy ? 0.6 : 1,
+            transition: "opacity 0.15s",
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => { if (!busy) e.currentTarget.style.opacity = "0.85"; }}
+          onMouseLeave={(e) => { if (!busy) e.currentTarget.style.opacity = "1"; }}
         >
+          {busy
+            ? <FeatherLoader style={{ width: 14, height: 14, animation: "spin 0.8s linear infinite" }} />
+            : <FeatherPlus style={{ width: 14, height: 14 }} />
+          }
           {isUploading ? "Uploading…" : isIngesting ? "Processing…" : "Add Files"}
-        </Button>
+        </button>
         <input
           ref={fileInputRef}
           type="file"
           multiple
           accept=".pdf,.docx,.doc,.txt,.md,.csv"
-          className="hidden"
+          style={{ display: "none" }}
           onChange={(e) => {
             if (e.target.files) onUploadFiles(e.target.files);
             e.target.value = "";
