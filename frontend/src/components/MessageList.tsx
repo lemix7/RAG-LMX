@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "@/lib/types";
 import { ChatMessage } from "./ChatMessage";
+import { FeatherMessageSquare } from "@subframe/core";
 
 interface MessageListProps {
   messages: Message[];
@@ -17,27 +18,24 @@ export function MessageList({ messages }: MessageListProps) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#f0f0f3] border border-[#e0e1e6] flex items-center justify-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path
-              d="M10 2C5.58 2 2 5.13 2 9c0 2.04.92 3.87 2.4 5.18L4 17l3.3-1.32C8.14 16 9.05 16.25 10 16.25 14.42 16.25 18 13.12 18 9S14.42 2 10 2Z"
-              stroke="#b0b4ba"
-              strokeWidth="1.5"
-              fill="none"
-            />
-          </svg>
+      <div style={{ display: "flex", flex: 1, width: "100%", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: "0 24px" }}>
+        {/* <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#1f2228", border: "1px solid #474747", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <FeatherMessageSquare style={{ width: 20, height: 20, color: "#ffffff" }} />
+        </div> */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 20, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.4, color: "#ffffff", textAlign: "center" }}>
+            Ask anything
+          </span>
+          <span style={{ maxWidth: 280, fontSize: 14, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", letterSpacing: "-0.025em", lineHeight: 1.5, color: "#7d8187", textAlign: "center" }}>
+            Upload documents in the sidebar, then ask questions about them.
+          </span>
         </div>
-        <p className="text-[15px] font-[600] text-[#1c2024] mb-1">Ask anything</p>
-        <p className="text-[13px] text-[#b0b4ba] max-w-[260px] leading-[1.55]">
-          Upload documents in the sidebar, then ask questions about them.
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5">
+    <div style={{ display: "flex", flex: 1, width: "100%", flexDirection: "column", overflowY: "auto", padding: "24px 16px", gap: 16 }}>
       {messages.map((message) => (
         <ChatMessage key={message.id} message={message} />
       ))}

@@ -1,0 +1,43 @@
+// @subframe/sync-disable
+"use client";
+/*
+ * Documentation:
+ * Bar Chart — https://app.subframe.com/056d18e2a2e9/library?component=Bar+Chart_4d4f30e7-1869-4980-8b96-617df3b37912
+ */
+
+import React from "react";
+import * as SubframeCore from "@subframe/core";
+import * as SubframeUtils from "../utils";
+
+interface BarChartRootProps
+  extends React.ComponentProps<typeof SubframeCore.BarChart> {
+  stacked?: boolean;
+  className?: string;
+}
+
+const BarChartRoot = React.forwardRef<
+  React.ElementRef<typeof SubframeCore.BarChart>,
+  BarChartRootProps
+>(function BarChartRoot(
+  { stacked = false, className, ...otherProps }: BarChartRootProps,
+  ref
+) {
+  return (
+    <SubframeCore.BarChart
+      className={SubframeUtils.twClassNames("h-80 w-full", className)}
+      ref={ref}
+      stacked={stacked}
+      colors={[
+        "#2563eb",
+        "#60a5fa",
+        "#1d4ed8",
+        "#93c5fd",
+        "#1e40af",
+        "#3b82f6",
+      ]}
+      {...otherProps}
+    />
+  );
+});
+
+export const BarChart = BarChartRoot;

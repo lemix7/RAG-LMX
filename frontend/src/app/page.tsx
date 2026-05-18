@@ -1,58 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "@/lib/useChat";
 import { useFiles } from "@/lib/useFiles";
-import { Sidebar } from "@/components/Sidebar";
-import { ChatArea } from "@/components/ChatArea";
-import { MobileHeader } from "@/components/MobileHeader";
+import { MessageList } from "@/components/MessageList";
+import { ChatSidebar } from "@/components/chat/ChatSidebar";
+import { ChatTopBar } from "@/components/chat/ChatTopBar";
+import { ChatInput } from "@/components/chat/ChatInput";
 
 export default function Home() {
+  const { messages, isStreaming, sendMessage } = useChat();
+  const { files, isUploading, isIngesting, error, uploadFiles, deleteFile } = useFiles();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const { messages, isStreaming, sendMessage, clearMessages } = useChat();
-  const { files, isUploading, isIngesting, ingestMessage, error, uploadFiles, deleteFile } = useFiles();
-
   return (
-    <div className="h-full flex flex-col bg-[#f0f0f3]">
-      <MobileHeader onMenuToggle={() => setSidebarOpen(true)} messageCount={messages.length} />
+    <div style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden" }}>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <Sidebar
+      {/* Sidebar — hidden on mobile, always visible md+ */}
+      <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
+        <ChatSidebar
           files={files}
           isUploading={isUploading}
           isIngesting={isIngesting}
-          ingestMessage={ingestMessage}
           error={error}
-          onFiles={uploadFiles}
+          fileInputRef={fileInputRef}
+          onUploadFiles={uploadFiles}
           onDeleteFile={deleteFile}
-          onNewChat={clearMessages}
         />
-
-        <main className="flex flex-1 min-h-0 p-4">
-          <ChatArea messages={messages} isStreaming={isStreaming} onSend={sendMessage} />
-        </main>
       </div>
 
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <>
-          <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="md:hidden fixed inset-y-0 left-0 z-50 flex animate-fade-in">
-            <Sidebar
+          <div
+            className="md:hidden"
+            style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(2px)" }}
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div
+            className="md:hidden"
+            style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
+          >
+            <ChatSidebar
               files={files}
               isUploading={isUploading}
               isIngesting={isIngesting}
-              ingestMessage={ingestMessage}
               error={error}
-              onFiles={uploadFiles}
+              fileInputRef={fileInputRef}
+              onUploadFiles={uploadFiles}
               onDeleteFile={deleteFile}
-              onNewChat={clearMessages}
               onClose={() => setSidebarOpen(false)}
-              isMobileOverlay
             />
           </div>
         </>
       )}
+
+      {/* Main content */}
+      <div style={{ display: "flex", flex: 1, flexDirection: "column", alignSelf: "stretch", overflow: "hidden", minWidth: 0 }}>
+        <ChatTopBar onMenuClick={() => setSidebarOpen(true)} />
+
+        <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
+          <MessageList messages={messages} />
+          <ChatInput
+            isStreaming={isStreaming}
+            fileInputRef={fileInputRef}
+            onSend={sendMessage}
+          />
+        </div>
+      </div>
     </div>
   );
 }

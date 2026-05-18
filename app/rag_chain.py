@@ -4,8 +4,13 @@ from langchain_openai import ChatOpenAI
 from .retriever import get_retriever
 from .config import LLM_MODEL
 
-SYSTEM_PROMPT = """You are a helpful assistant that answers questions based on the provided context.
-Use only the context below to answer the question. If the context doesn't contain enough information, say so.
+SYSTEM_PROMPT = """You are a document assistant. Your only knowledge source is the context provided below.
+
+Rules:
+- Answer ONLY using information explicitly stated in the context.
+- If the context does not contain the answer, respond with exactly: "I don't have information about that in the provided documents."
+- Do NOT use your training knowledge, general knowledge, or any information not present in the context.
+- Do NOT make assumptions or inferences beyond what the context states.
 
 Context:
 {context}"""

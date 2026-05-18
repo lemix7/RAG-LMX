@@ -38,7 +38,7 @@ RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # Minimum reranker score to include a chunk as a source.
 # Chunks scoring below this are dropped even if they're in the top k.
-RERANKER_SCORE_THRESHOLD = 0.0
+RERANKER_SCORE_THRESHOLD = 1.0
 
 
 
