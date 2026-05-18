@@ -95,7 +95,7 @@ export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
         <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" />
         <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" />
         <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" selected href="/settings" />
-        <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" />
+        <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" />
       </div>
 
       {/* Footer */}

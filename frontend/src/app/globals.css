@@ -192,6 +192,7 @@ body {
   .chat-input-wrap { padding: 12px 12px 16px !important; }
   .hamburger-btn   { display: flex !important; }
   .kb-body         { padding: 20px 16px 32px !important; }
+  .admin-body      { padding: 20px 16px 32px !important; }
 }
 @media (min-width: 768px) {
   .hamburger-btn { display: none !important; }
