@@ -44,12 +44,12 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
         <div
           key={file.name}
           className="group/file flex w-full items-center gap-3 rounded-md border border-solid transition-colors"
-          style={{ background: "#1f2228", border: "1px solid #2a2d34", padding: "10px 12px", borderRadius: 8 }}
+          style={{ background: "#0C0C0B", border: "1px solid #2a2d34", padding: "10px 12px", borderRadius: 8 }}
           title={file.errorMessage ?? file.name}
         >
           <FileIcon name={file.name} />
           <div className="flex grow shrink-0 basis-0 flex-col items-start overflow-hidden">
-            <span className="whitespace-nowrap text-caption-bold font-caption-bold text-default-font truncate w-full">
+            <span className="whitespace-nowrap text-caption-bold font-caption-bold  truncate w-full " style={{ fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 12, letterSpacing: "0.08em", color: "#fff",  }} >
               {file.name}
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">

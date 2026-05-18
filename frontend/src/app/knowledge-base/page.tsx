@@ -82,19 +82,34 @@ export default function KnowledgeBasePage() {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        {/* Body — 48px section gap per DESIGN.md */}
-        <div className="kb-body" style={{ display: "flex", width: "100%", flexDirection: "column", gap: 48, padding: "32px 24px 48px" }}>
+        {/* Body */}
+        <div className="kb-body" style={{ display: "flex", width: "100%", flexDirection: "column", gap: 48, padding: "40px 40px 48px" }}>
           <StatCards total={files.length} ready={ready} processing={processing} errored={errored} />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <FileToolbar
-              search={search}
-              filter={filter}
-              onSearchChange={handleSearchChange}
-              onFilterChange={handleFilterChange}
-            />
+          {/* Files card — same style as admin users table */}
+          <div style={{ display: "flex", flexDirection: "column", border: "1px solid #1f2228", background: "#0c0c0b" }}>
+            {/* Card header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 16px 12px", borderBottom: "1px solid #1f2228" }}>
+              <span style={{ fontSize: 12, fontFamily: "var(--font-space-mono), ui-monospace, monospace", letterSpacing: "0.1em", color: "#7d8187", textTransform: "uppercase" }}>
+                Files
+              </span>
+              <span style={{ fontSize: 11, fontFamily: "var(--font-space-mono), ui-monospace, monospace", letterSpacing: "0.1em", color: "#474747" }}>
+                {filtered.length} of {files.length}
+              </span>
+            </div>
 
-            <div style={{ width: "100%", overflowX: "auto", border: "1px solid #1f2228" }}>
+            {/* Toolbar */}
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid #1f2228" }}>
+              <FileToolbar
+                search={search}
+                filter={filter}
+                onSearchChange={handleSearchChange}
+                onFilterChange={handleFilterChange}
+              />
+            </div>
+
+            {/* Table */}
+            <div style={{ width: "100%", overflowX: "auto" }}>
               <FileTable
                 files={files}
                 filtered={filtered}
@@ -105,12 +120,17 @@ export default function KnowledgeBasePage() {
               />
             </div>
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filtered.length}
-              onPageChange={setPage}
-            />
+            {/* Pagination */}
+            {filtered.length > 0 && (
+              <div style={{ padding: "12px 16px", borderTop: "1px solid #1f2228" }}>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filtered.length}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+// @subframe/sync-disable
 "use client";
 /*
  * Documentation:
@@ -27,12 +28,12 @@ const BarChartRoot = React.forwardRef<
       ref={ref}
       stacked={stacked}
       colors={[
-        "#6e56cf",
-        "#d6cdfc",
-        "#5842b9",
-        "#b9aaf6",
-        "#443296",
-        "#9380e4",
+        "#2563eb",
+        "#60a5fa",
+        "#1d4ed8",
+        "#93c5fd",
+        "#1e40af",
+        "#3b82f6",
       ]}
       {...otherProps}
     />

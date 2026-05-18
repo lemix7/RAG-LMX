@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../ui/theme.css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -191,7 +192,7 @@ body {
 @media (max-width: 767px) {
   .chat-input-wrap { padding: 12px 12px 16px !important; }
   .hamburger-btn   { display: flex !important; }
-  .kb-body         { padding: 20px 16px 32px !important; }
+  .kb-body         { padding: 20px 16px 40px !important; }
   .admin-body      { padding: 20px 16px 32px !important; }
 }
 @media (min-width: 768px) {

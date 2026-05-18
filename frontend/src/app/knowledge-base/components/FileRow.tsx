@@ -83,7 +83,7 @@ export function FileRow({ file, onDelete }: FileRowProps) {
   return (
     <tr
       style={{ transition: "background 0.12s" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#0f0f0e")}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#1f2228")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <td style={{ ...CELL, maxWidth: 260 }}>
