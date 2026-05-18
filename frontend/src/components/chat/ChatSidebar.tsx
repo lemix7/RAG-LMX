@@ -138,6 +138,15 @@ export function ChatSidebar({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading || isIngesting}
+          onDragOver={(e) => { e.preventDefault(); if (!isUploading && !isIngesting) e.currentTarget.style.borderColor = "#2563eb"; }}
+          onDragLeave={(e) => { e.currentTarget.style.borderColor = "#1f2228"; }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = "#1f2228";
+            if (!isUploading && !isIngesting && e.dataTransfer.files.length > 0) {
+              onUploadFiles(e.dataTransfer.files);
+            }
+          }}
           style={{
             display: "flex",
             flexDirection: "column",
