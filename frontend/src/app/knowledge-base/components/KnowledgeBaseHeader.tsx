@@ -12,6 +12,7 @@ interface KnowledgeBaseHeaderProps {
   error?: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUploadFiles: (files: FileList) => void;
+  onMenuClick?: () => void;
 }
 
 export function KnowledgeBaseHeader({
@@ -21,12 +22,26 @@ export function KnowledgeBaseHeader({
   error,
   fileInputRef,
   onUploadFiles,
+  onMenuClick,
 }: KnowledgeBaseHeaderProps) {
   const busy = isUploading || isIngesting;
 
   return (
-    <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #1f2228", padding: "14px 24px", background: "#0c0c0b" }}>
+    <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #1f2228", padding: "14px 24px", background: "#0c0c0b", flexShrink: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* Hamburger — mobile only */}
+        <button
+          className="hamburger-btn"
+          onClick={onMenuClick}
+          style={{ background: "none", border: "none", color: "#7d8187", cursor: "pointer", alignItems: "center", padding: 4, marginRight: 4, transition: "color 0.15s" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8187")}
+          aria-label="Open sidebar"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
         <FeatherDatabase style={{ width: 16, height: 16, color: "#ffffff" }} />
         <span style={{ fontSize: 16, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>
           Knowledge Base

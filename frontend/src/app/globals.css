@@ -183,6 +183,20 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .animate-spin-slow { animation: spin 0.8s linear infinite; }
 
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@media (max-width: 767px) {
+  .chat-input-wrap { padding: 12px 12px 16px !important; }
+  .hamburger-btn   { display: flex !important; }
+  .kb-body         { padding: 20px 16px 32px !important; }
+}
+@media (min-width: 768px) {
+  .hamburger-btn { display: none !important; }
+}
+
 @keyframes pulse-dot {
   0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
   40%           { opacity: 1;   transform: scale(1); }

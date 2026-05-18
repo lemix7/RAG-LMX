@@ -37,8 +37,8 @@ interface SidebarFileListProps {
 export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
   return (
     <div className="flex w-full flex-col items-start gap-1" style={{ padding: "12px 12px" }}>
-      <span className="text-caption-bold font-caption-bold text-subtext-color mb-1" style={{ fontFamily: "var(--font-space-mono), ui-monospace, monospace", fontSize: 11, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
-        Knowledge Source ({files.length})
+      <span className="text-caption-bold font-caption-bold text-subtext-color mb-1" style={{ fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.08em", color: "#fff",  }}>
+        Knowledge Source ({files.length}) 
       </span>
       {files.map((file) => (
         <div
@@ -55,7 +55,7 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
             <div className="flex items-center gap-1.5 mt-0.5">
               {getStatusDot(file.status)}
               {file.size > 0 && (
-                <span className="font-['Public_Sans'] text-[10px] font-[400] leading-[15px] text-subtext-color">
+                <span className=" text-[10px] font-[400] leading-[15px] text-subtext-color">
                   {formatSize(file.size)}
                 </span>
               )}

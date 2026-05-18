@@ -42,7 +42,7 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
   const canSend = inputValue.trim().length > 0 && !isStreaming;
 
   return (
-    <div style={{ display: "flex", width: "100%", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 24px 20px" }}>
+    <div className="chat-input-wrap" style={{ display: "flex", width: "100%", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 24px 20px" }}>
       <div
         style={{
           display: "flex",
@@ -131,8 +131,7 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
 
       <span style={{
         fontSize: 11,
-        fontFamily: "var(--font-space-mono), ui-monospace, monospace",
-        letterSpacing: "0.08em",
+        fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
         color: "#a0a4ab",
         textAlign: "center",
       }}>

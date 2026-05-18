@@ -52,16 +52,16 @@ function NavItem({ icon, label, selected, href }: NavItemProps) {
   return content;
 }
 
-interface KnowledgeBaseSidebarProps {
+interface SettingsSidebarProps {
   onClose?: () => void;
 }
 
-export function KnowledgeBaseSidebar({ onClose }: KnowledgeBaseSidebarProps) {
+export function SettingsSidebar({ onClose }: SettingsSidebarProps) {
   return (
     <div style={{
       display: "flex",
       flexDirection: "column",
-      width: 320,
+      width: 300,
       height: "100%",
       background: "#0c0c0b",
       borderRight: "1px solid #1f2228",
@@ -93,8 +93,8 @@ export function KnowledgeBaseSidebar({ onClose }: KnowledgeBaseSidebarProps) {
       {/* Nav */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flex: 1 }}>
         <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" />
-        <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" selected href="/knowledge-base" />
-        <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" />
+        <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" />
+        <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" selected href="/settings" />
         <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" />
       </div>
 

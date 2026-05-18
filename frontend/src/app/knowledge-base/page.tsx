@@ -17,30 +17,17 @@ export default function KnowledgeBasePage() {
   const [filter, setFilter] = useState<FilterType>("All Types");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      uploadFiles(e.dataTransfer.files);
-    },
-    [uploadFiles]
-  );
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    uploadFiles(e.dataTransfer.files);
+  }, [uploadFiles]);
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
-
-  const handleFilterChange = (value: FilterType) => {
-    setFilter(value);
-    setPage(1);
-  };
-
-  const handleClearFilters = () => {
-    setSearch("");
-    setFilter("All Types");
-  };
+  const handleSearchChange = (value: string) => { setSearch(value); setPage(1); };
+  const handleFilterChange = (value: FilterType) => { setFilter(value); setPage(1); };
+  const handleClearFilters = () => { setSearch(""); setFilter("All Types"); };
 
   const filtered = files.filter((f) => {
     const matchSearch = !search || f.name.toLowerCase().includes(search.toLowerCase());
@@ -50,24 +37,41 @@ export default function KnowledgeBasePage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
-  const pageFiles = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const pageFiles = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  const ready = files.filter((f) => f.status === "ingested").length;
+  const ready      = files.filter((f) => f.status === "ingested").length;
   const processing = files.filter((f) => f.status === "ingesting" || f.status === "uploading").length;
-  const errored = files.filter((f) => f.status === "error").length;
+  const errored    = files.filter((f) => f.status === "error").length;
 
   return (
     <div
-      className="flex h-full w-full items-start bg-default-background"
+      style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden" }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
-      <KnowledgeBaseSidebar />
+      {/* Sidebar — hidden on mobile, always visible md+ */}
+      <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
+        <KnowledgeBaseSidebar />
+      </div>
 
-      <div className="flex grow shrink-0 basis-0 flex-col items-start overflow-auto">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="md:hidden"
+            style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(2px)" }}
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div
+            className="md:hidden"
+            style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
+          >
+            <KnowledgeBaseSidebar onClose={() => setSidebarOpen(false)} />
+          </div>
+        </>
+      )}
+
+      <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "flex-start", alignSelf: "stretch", overflow: "auto", minWidth: 0 }}>
         <KnowledgeBaseHeader
           fileCount={files.length}
           isUploading={isUploading}
@@ -75,40 +79,39 @@ export default function KnowledgeBasePage() {
           error={error}
           fileInputRef={fileInputRef}
           onUploadFiles={uploadFiles}
+          onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <div className="flex w-full grow shrink-0 basis-0 flex-col items-start gap-6 px-6 py-6 mobile:px-4">
-          <StatCards
-            total={files.length}
-            ready={ready}
-            processing={processing}
-            errored={errored}
-          />
+        {/* Body — 48px section gap per DESIGN.md */}
+        <div className="kb-body" style={{ display: "flex", width: "100%", flexDirection: "column", gap: 48, padding: "32px 24px 48px" }}>
+          <StatCards total={files.length} ready={ready} processing={processing} errored={errored} />
 
-          <FileToolbar
-            search={search}
-            filter={filter}
-            onSearchChange={handleSearchChange}
-            onFilterChange={handleFilterChange}
-          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <FileToolbar
+              search={search}
+              filter={filter}
+              onSearchChange={handleSearchChange}
+              onFilterChange={handleFilterChange}
+            />
 
-          <div style={{ width: "100%", overflow: "hidden", overflowX: "auto", border: "1px solid #1f2228", background: "#0c0c0b" }}>
-            <FileTable
-              files={files}
-              filtered={filtered}
-              pageFiles={pageFiles}
-              onDelete={deleteFile}
-              onClearFilters={handleClearFilters}
-              onAddFile={() => fileInputRef.current?.click()}
+            <div style={{ width: "100%", overflowX: "auto", border: "1px solid #1f2228" }}>
+              <FileTable
+                files={files}
+                filtered={filtered}
+                pageFiles={pageFiles}
+                onDelete={deleteFile}
+                onClearFilters={handleClearFilters}
+                onAddFile={() => fileInputRef.current?.click()}
+              />
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              onPageChange={setPage}
             />
           </div>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filtered.length}
-            onPageChange={setPage}
-          />
         </div>
       </div>
     </div>

@@ -37,13 +37,11 @@ function InputField({
     <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
       <label
         style={{
-          fontSize: 14,
-          fontFamily: MONO,
+          fontSize: 15,
+          fontFamily: FONT,
           fontWeight: 400,
-          letterSpacing: "0.08em",
           lineHeight: 1.5,
           color: "#7d8187",
-          textTransform: "uppercase",
         }}
       >
         {label}
@@ -74,8 +72,7 @@ function InputField({
             letterSpacing: "-0.025em",
             lineHeight: 1.5,
             outline: "none",
-            boxShadow: focused ? "rgb(113,113,122) 0px 0px 0px 2px" : "none",
-            transition: "border-color 0.15s, box-shadow 0.15s",
+            transition: "border-color 0.15s",
           }}
           onMouseEnter={(e) => { if (!focused) (e.target as HTMLInputElement).style.borderColor = "#474747"; }}
           onMouseLeave={(e) => { if (!focused) (e.target as HTMLInputElement).style.borderColor = "#1f2228"; }}
@@ -150,9 +147,9 @@ export default function LoginPage() {
         <div style={{ width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", gap: 40 }}>
           {/* Logo */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {/* <div style={{ width: 52, height: 52, borderRadius: 14, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <FeatherBot style={{ width: 26, height: 26, color: "#ffffff" }} />
-            </div>
+            </div> */}
             <h1 style={{ fontSize: 28, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.2, color: "#ffffff", textAlign: "center", margin: 0 }}>
               RAG Admin
             </h1>
@@ -212,8 +209,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 style={{ background: "none", border: "none", color: "#474747", cursor: "pointer", fontSize: 12, fontFamily: MONO, letterSpacing: "0.06em", textDecoration: "underline", textUnderlineOffset: 3, padding: 0, transition: "color 0.15s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#474747")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#fff")}
               >
                 Forgot password?
               </button>
@@ -247,7 +244,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: "#1f2228" }} />
-            <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.1em", color: "#474747", whiteSpace: "nowrap" }}>or continue with</span>
+            <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.1em", color: "#fff", whiteSpace: "nowrap" }}>or continue with</span>
             <div style={{ flex: 1, height: 1, background: "#1f2228" }} />
           </div>
 

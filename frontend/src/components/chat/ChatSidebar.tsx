@@ -63,6 +63,7 @@ interface ChatSidebarProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUploadFiles: (files: FileList) => void;
   onDeleteFile: (name: string) => void;
+  onClose?: () => void;
 }
 
 export function ChatSidebar({
@@ -73,30 +74,46 @@ export function ChatSidebar({
   fileInputRef,
   onUploadFiles,
   onDeleteFile,
+  onClose,
 }: ChatSidebarProps) {
   return (
     <div style={{
       display: "flex",
       flexDirection: "column",
-      width: 320,
+      width: 300,
       height: "100%",
       background: "#0c0c0b",
       borderRight: "1px solid #1f2228",
       flexShrink: 0,
     }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 16px 16px", borderBottom: "1px solid #1f2228" }}>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <FeatherLayers style={{ width: 15, height: 15, color: "#ffffff" }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "20px 16px 16px", borderBottom: "1px solid #1f2228" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <FeatherLayers style={{ width: 15, height: 15, color: "#ffffff" }} />
+          </div>
+          <span style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>RAG LMX</span>
         </div>
-        <span style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>RAG LMX</span>
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", color: "#7d8187", cursor: "pointer", display: "flex", alignItems: "center", padding: 4, borderRadius: 4, transition: "color 0.15s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#7d8187")}
+            aria-label="Close sidebar"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Nav */}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px" }}>
         <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" selected href="/" />
         <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" />
-        <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" />
+        <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" />
         <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" />
       </div>
 
