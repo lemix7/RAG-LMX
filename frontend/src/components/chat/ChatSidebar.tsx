@@ -204,8 +204,8 @@ export function ChatSidebar({
           <FeatherUser style={{ width: 14, height: 14, color: "#7d8187" }} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <span style={{ fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>Alex Morgan</span>
-          <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab" }}>Admin</span>
+          <span style={{ fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>User</span>
+          <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab" }}>—</span>
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
+import { BACKEND_URL } from "@/lib/backend";
 
 export async function DELETE(
   _request: NextRequest,
