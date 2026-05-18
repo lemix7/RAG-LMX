@@ -95,7 +95,7 @@ export function KnowledgeBaseSidebar({ onClose }: KnowledgeBaseSidebarProps) {
         <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" />
         <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" selected href="/knowledge-base" />
         <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" />
-        <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" />
+        <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" />
       </div>
 
       {/* Footer */}
