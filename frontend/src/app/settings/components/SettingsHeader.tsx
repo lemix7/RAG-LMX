@@ -14,7 +14,7 @@ export function SettingsHeader({ onMenuClick }: SettingsHeaderProps) {
     <div style={{ display: "flex", width: "100%", alignItems: "center", borderBottom: "1px solid #1f2228", padding: "14px 16px", background: "#0c0c0b", flexShrink: 0, gap: 10 }}>
       {/* Hamburger — mobile only */}
       <button
-        className="hamburger-btn"
+        className="hamburger-btn md:hidden"
         onClick={onMenuClick}
         style={{ background: "none", border: "none", color: "#7d8187", cursor: "pointer", alignItems: "center", padding: 4, flexShrink: 0, transition: "color 0.15s" }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}

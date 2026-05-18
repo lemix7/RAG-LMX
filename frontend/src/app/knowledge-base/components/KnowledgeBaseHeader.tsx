@@ -31,7 +31,7 @@ export function KnowledgeBaseHeader({
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {/* Hamburger — mobile only */}
         <button
-          className="hamburger-btn"
+          className="hamburger-btn md:hidden"
           onClick={onMenuClick}
           style={{ background: "none", border: "none", color: "#7d8187", cursor: "pointer", alignItems: "center", padding: 4, marginRight: 4, transition: "color 0.15s" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
