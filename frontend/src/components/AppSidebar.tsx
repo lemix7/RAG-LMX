@@ -46,7 +46,7 @@ function NavItem({ icon, label, selected, href, index = 0 }: NavItemProps) {
         gap: 10,
         padding: "8px 12px",
         borderRadius: 8,
-        background: selected ? "#1f2228" : "transparent",
+        background: selected ? "#2463EB" : "transparent",
         color: selected ? "#ffffff" : "#a0a4ab",
         cursor: "pointer",
         transition: "background 0.15s, color 0.15s",
