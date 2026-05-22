@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, KeyboardEvent } from "react";
+import { motion } from "motion/react";
 import { FeatherArrowUp, FeatherPaperclip } from "@subframe/core";
 
 interface ChatInputProps {
@@ -43,7 +44,14 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
 
   return (
     <div className="chat-input-wrap" style={{ display: "flex", width: "100%", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 24px 20px" }}>
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0, scale: focused ? 1.01 : 1 }}
+        transition={{
+          opacity: { duration: 0.35, ease: "easeOut" },
+          y: { duration: 0.35, ease: "easeOut" },
+          scale: { type: "spring", stiffness: 300, damping: 25 },
+        }}
         style={{
           display: "flex",
           width: "100%",
@@ -54,7 +62,6 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
           border: `1px solid ${focused ? "#2563eb" : "#1f2228"}`,
           borderRadius: 24,
           padding: "12px 16px",
-          // boxShadow: focused ? "rgb(113,113,122) 0px 0px 0px 2px" : "none",
           transition: "border-color 0.15s, box-shadow 0.15s",
         }}
       >
@@ -107,9 +114,13 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
           }}
         />
 
-        <button
+        <motion.button
           onClick={handleSend}
           disabled={!canSend}
+          animate={{ scale: canSend ? 1 : 0.85 }}
+          whileHover={canSend ? { scale: 1.12 } : undefined}
+          whileTap={canSend ? { scale: 0.9 } : undefined}
+          transition={{ type: "spring", stiffness: 400, damping: 18 }}
           style={{
             width: 30,
             height: 30,
@@ -126,17 +137,22 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
           }}
         >
           <FeatherArrowUp style={{ width: 14, height: 14, color: canSend ? "#0c0c0b" : "#a0a4ab" }} />
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      <span style={{
-        fontSize: 11,
-        fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
-        color: "#a0a4ab",
-        textAlign: "center",
-      }}>
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+        style={{
+          fontSize: 11,
+          fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+          color: "#a0a4ab",
+          textAlign: "center",
+        }}
+      >
         Enter to send · Shift+Enter for new line
-      </span>
+      </motion.span>
     </div>
   );
 }

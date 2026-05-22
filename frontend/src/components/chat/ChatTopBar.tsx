@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import {
   FeatherMessageSquare,
   FeatherMoreHorizontal,
@@ -46,15 +47,26 @@ export function ChatTopBar({ onMenuClick }: ChatTopBarProps) {
             <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         </button>
-        <FeatherMessageSquare style={{ width: 16, height: 16, color: "#ffffff" }} />
-        <span style={{ fontSize: 16, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>
-          Document Assistant
-        </span>
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          style={{ display: "flex", alignItems: "center", gap: 10 }}
+        >
+          <FeatherMessageSquare style={{ width: 16, height: 16, color: "#ffffff" }} />
+          <span style={{ fontSize: 16, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>
+            Document Assistant
+          </span>
+        </motion.div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {model && (
-          <span style={{
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            style={{
             fontSize: 11,
             fontFamily: "var(--font-space-mono), ui-monospace, monospace",
             letterSpacing: "0.08em",
@@ -65,7 +77,7 @@ export function ChatTopBar({ onMenuClick }: ChatTopBarProps) {
             background: "transparent",
           }}>
             {model}
-          </span>
+          </motion.span>
         )}
         <button style={{ background: "none", border: "none", color: "#ffffff", cursor: "pointer", display: "flex", alignItems: "center", padding: 4 }}>
           <FeatherMoreHorizontal style={{ width: 16, height: 16 }} />
