@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { SidebarFileList } from "@/components/SidebarFileList";
 import {
   FeatherActivity,
@@ -28,11 +29,17 @@ interface NavItemProps {
   label: string;
   selected?: boolean;
   href?: string;
+  index?: number;
 }
 
-function NavItem({ icon, label, selected, href }: NavItemProps) {
+function NavItem({ icon, label, selected, href, index = 0 }: NavItemProps) {
   const content = (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25, delay: index * 0.04, ease: "easeOut" }}
+      whileHover={{ x: 3 }}
+      whileTap={{ scale: 0.98 }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -55,7 +62,7 @@ function NavItem({ icon, label, selected, href }: NavItemProps) {
         {icon}
       </span>
       {label}
-    </div>
+    </motion.div>
   );
 
   if (href) return <Link href={href} style={{ textDecoration: "none" }}>{content}</Link>;
@@ -129,35 +136,40 @@ export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProp
       <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "12px 8px", flex: 1, overflowY: "auto" }}>
         {variant === "admin" ? (
           <>
-            <NavItem icon={<FeatherShield style={{ width: 15, height: 15 }} />} label="Dashboard" href="/admin" selected={pathname === "/admin"} />
+            <NavItem icon={<FeatherShield style={{ width: 15, height: 15 }} />} label="Dashboard" href="/admin" selected={pathname === "/admin"} index={0} />
 
             <div style={{ marginTop: 8 }}>
               <NavSection label="Management">
-                <NavItem icon={<FeatherUsers style={{ width: 15, height: 15 }} />} label="Users" href="/admin/users" selected={pathname === "/admin/users"} />
-                <NavItem icon={<FeatherFileText style={{ width: 15, height: 15 }} />} label="Documents" href="/admin/documents" selected={pathname === "/admin/documents"} />
+                <NavItem icon={<FeatherUsers style={{ width: 15, height: 15 }} />} label="Users" href="/admin/users" selected={pathname === "/admin/users"} index={1} />
+                <NavItem icon={<FeatherFileText style={{ width: 15, height: 15 }} />} label="Documents" href="/admin/documents" selected={pathname === "/admin/documents"} index={2} />
               </NavSection>
             </div>
 
             <div style={{ marginTop: 8 }}>
               <NavSection label="Analytics">
-                <NavItem icon={<FeatherBarChart2 style={{ width: 15, height: 15 }} />} label="Usage" />
-                <NavItem icon={<FeatherActivity style={{ width: 15, height: 15 }} />} label="Performance" />
+                <NavItem icon={<FeatherBarChart2 style={{ width: 15, height: 15 }} />} label="Usage" index={3} />
+                <NavItem icon={<FeatherActivity style={{ width: 15, height: 15 }} />} label="Performance" index={4} />
               </NavSection>
             </div>
           </>
         ) : (
           <>
-            <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" selected={pathname === "/"} />
-            <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" selected={pathname === "/knowledge-base"} />
-            <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" selected={pathname === "/settings"} />
-            <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" selected={pathname.startsWith("/admin")} />
+            <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" selected={pathname === "/"} index={0} />
+            <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" selected={pathname === "/knowledge-base"} index={1} />
+            <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" selected={pathname === "/settings"} index={2} />
+            <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" selected={pathname.startsWith("/admin")} index={3} />
           </>
         )}
       </div>
 
       {/* Upload section (chat page only) */}
       {upload && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px", borderTop: "1px solid #1f2228" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.18, ease: "easeOut" }}
+          style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px", borderTop: "1px solid #1f2228" }}
+        >
           <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
             Upload Files
           </span>
@@ -174,7 +186,9 @@ export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProp
             }}
           />
 
-          <button
+          <motion.button
+            whileHover={upload.isUploading || upload.isIngesting ? undefined : { scale: 1.02 }}
+            whileTap={upload.isUploading || upload.isIngesting ? undefined : { scale: 0.98 }}
             onClick={() => upload.fileInputRef.current?.click()}
             disabled={upload.isUploading || upload.isIngesting}
             onDragOver={(e) => { e.preventDefault(); if (!upload.isUploading && !upload.isIngesting) e.currentTarget.style.borderColor = "#2563eb"; }}
@@ -223,12 +237,12 @@ export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProp
                 </div>
               </>
             )}
-          </button>
+          </motion.button>
 
           {upload.error && (
             <p style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#f05070", margin: 0 }}>{upload.error}</p>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* File list (chat page only) */}
