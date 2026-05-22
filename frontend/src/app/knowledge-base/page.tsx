@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useFiles } from "@/lib/useFiles";
-import { KnowledgeBaseSidebar } from "./components/KnowledgeBaseSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { KnowledgeBaseHeader } from "./components/KnowledgeBaseHeader";
 import { StatCards } from "./components/StatCards";
 import { FileToolbar } from "./components/FileToolbar";
@@ -51,7 +51,7 @@ export default function KnowledgeBasePage() {
     >
       {/* Sidebar — hidden on mobile, always visible md+ */}
       <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
-        <KnowledgeBaseSidebar />
+        <AppSidebar />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -66,7 +66,7 @@ export default function KnowledgeBasePage() {
             className="md:hidden"
             style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
           >
-            <KnowledgeBaseSidebar onClose={() => setSidebarOpen(false)} />
+            <AppSidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </>
       )}

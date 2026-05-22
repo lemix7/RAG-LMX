@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SettingsSidebar } from "@/components/settings/SettingsSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { SettingsHeader } from "./components/SettingsHeader";
 
 import { Section } from "./components/Section";
@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
       {/* Sidebar — hidden on mobile, always visible md+ */}
       <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
-        <SettingsSidebar />
+        <AppSidebar />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -37,7 +37,7 @@ export default function SettingsPage() {
             className="md:hidden"
             style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
           >
-            <SettingsSidebar onClose={() => setSidebarOpen(false)} />
+            <AppSidebar onClose={() => setSidebarOpen(false)} />
           </div>
         </>
       )}

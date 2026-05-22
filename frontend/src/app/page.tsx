@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useChat } from "@/lib/useChat";
 import { useFiles } from "@/lib/useFiles";
 import { MessageList } from "@/components/MessageList";
-import { ChatSidebar } from "@/components/chat/ChatSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { ChatTopBar } from "@/components/chat/ChatTopBar";
 import { ChatInput } from "@/components/chat/ChatInput";
 
@@ -19,14 +19,8 @@ export default function Home() {
 
       {/* Sidebar — hidden on mobile, always visible md+ */}
       <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
-        <ChatSidebar
-          files={files}
-          isUploading={isUploading}
-          isIngesting={isIngesting}
-          error={error}
-          fileInputRef={fileInputRef}
-          onUploadFiles={uploadFiles}
-          onDeleteFile={deleteFile}
+        <AppSidebar
+          upload={{ files, isUploading, isIngesting, error, fileInputRef, onUploadFiles: uploadFiles, onDeleteFile: deleteFile }}
         />
       </div>
 
@@ -42,14 +36,8 @@ export default function Home() {
             className="md:hidden"
             style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
           >
-            <ChatSidebar
-              files={files}
-              isUploading={isUploading}
-              isIngesting={isIngesting}
-              error={error}
-              fileInputRef={fileInputRef}
-              onUploadFiles={uploadFiles}
-              onDeleteFile={deleteFile}
+            <AppSidebar
+              upload={{ files, isUploading, isIngesting, error, fileInputRef, onUploadFiles: uploadFiles, onDeleteFile: deleteFile }}
               onClose={() => setSidebarOpen(false)}
             />
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar — hidden on mobile, always visible md+ */}
       <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
-        <AdminSidebar />
+        <AppSidebar variant="admin" />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="md:hidden"
             style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
           >
-            <AdminSidebar onClose={() => setSidebarOpen(false)} />
+            <AppSidebar variant="admin" onClose={() => setSidebarOpen(false)} />
           </div>
         </>
       )}
