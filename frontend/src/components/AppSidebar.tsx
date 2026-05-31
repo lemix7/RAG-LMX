@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
@@ -11,15 +12,19 @@ import {
   FeatherFileText,
   FeatherLayoutDashboard,
   FeatherLayers,
+  FeatherLogOut,
   FeatherMessageSquare,
+  FeatherPlus,
   FeatherSettings,
   FeatherShield,
+  FeatherTrash2,
   FeatherUploadCloud,
   FeatherUser,
   FeatherUsers,
   FeatherX,
 } from "@subframe/core";
-import type { FileInfo } from "@/lib/types";
+import { useAuth } from "@/lib/useAuth";
+import type { Conversation, FileInfo } from "@/lib/types";
 
 const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
 const MONO = "var(--font-space-mono), ui-monospace, monospace";
@@ -90,16 +95,127 @@ interface UploadConfig {
   onDeleteFile: (name: string) => void;
 }
 
+interface ChatsConfig {
+  conversations: Conversation[];
+  activeConversationId: string | null;
+  onSelect: (id: string) => void;
+  onNewChat: () => void;
+  onRename: (id: string, title: string) => void;
+  onDelete: (id: string) => void;
+}
+
 interface AppSidebarProps {
   /** "main" shows the top-level nav; "admin" shows the admin-only nav. */
   variant?: "main" | "admin";
   /** When provided, renders the file upload control + file list (chat page). */
   upload?: UploadConfig;
+  /** When provided, renders the saved-conversation list (chat page). */
+  chats?: ChatsConfig;
   onClose?: () => void;
 }
 
-export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProps) {
+function ChatList({ chats }: { chats: ChatsConfig }) {
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+
+  const commitRename = (id: string) => {
+    const title = draftTitle.trim();
+    if (title) chats.onRename(id, title);
+    setRenamingId(null);
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px 4px" }}>
+        <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.1em", color: "#474747", textTransform: "uppercase" }}>
+          Chats
+        </span>
+        <button
+          onClick={chats.onNewChat}
+          aria-label="New chat"
+          style={{ background: "none", border: "none", color: "#a0a4ab", cursor: "pointer", display: "flex", alignItems: "center", padding: 2, borderRadius: 4, transition: "color 0.15s" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#a0a4ab")}
+        >
+          <FeatherPlus style={{ width: 15, height: 15 }} />
+        </button>
+      </div>
+
+      {chats.conversations.length === 0 && (
+        <span style={{ fontSize: 12, fontFamily: FONT, color: "#474747", padding: "4px 12px", letterSpacing: "-0.025em" }}>
+          No chats yet
+        </span>
+      )}
+
+      {chats.conversations.map((c) => {
+        const selected = c.id === chats.activeConversationId;
+        return (
+          <div
+            key={c.id}
+            onClick={() => renamingId !== c.id && chats.onSelect(c.id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: selected ? "#2463EB" : "transparent",
+              color: selected ? "#ffffff" : "#a0a4ab",
+              cursor: "pointer",
+              fontSize: 14,
+              fontFamily: FONT,
+              letterSpacing: "-0.025em",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.background = "#1f2228"; e.currentTarget.style.color = "#ffffff"; } }}
+            onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#a0a4ab"; } }}
+          >
+            <FeatherMessageSquare style={{ width: 14, height: 14, flexShrink: 0 }} />
+            {renamingId === c.id ? (
+              <input
+                autoFocus
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                onBlur={() => commitRename(c.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitRename(c.id);
+                  if (e.key === "Escape") setRenamingId(null);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ flex: 1, minWidth: 0, background: "#0c0c0b", color: "#ffffff", border: "1px solid #2563eb", borderRadius: 6, padding: "2px 6px", fontSize: 13, fontFamily: FONT, outline: "none" }}
+              />
+            ) : (
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {c.title}
+              </span>
+            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); setRenamingId(c.id); setDraftTitle(c.title); }}
+              aria-label="Rename chat"
+              title="Rename"
+              style={{ background: "none", border: "none", color: "inherit", opacity: 0.6, cursor: "pointer", display: "flex", padding: 2 }}
+            >
+              <FeatherSettings style={{ width: 12, height: 12 }} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); chats.onDelete(c.id); }}
+              aria-label="Delete chat"
+              title="Delete"
+              style={{ background: "none", border: "none", color: "inherit", opacity: 0.6, cursor: "pointer", display: "flex", padding: 2 }}
+            >
+              <FeatherTrash2 style={{ width: 12, height: 12 }} />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSidebarProps) {
   const pathname = usePathname();
+  const { profile, signOut } = useAuth();
+  const isAdmin = profile?.role === "admin";
 
   return (
     <div style={{
@@ -157,7 +273,10 @@ export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProp
             <NavItem icon={<FeatherMessageSquare style={{ width: 15, height: 15 }} />} label="Chat" href="/" selected={pathname === "/"} index={0} />
             <NavItem icon={<FeatherDatabase style={{ width: 15, height: 15 }} />} label="Knowledge Base" href="/knowledge-base" selected={pathname === "/knowledge-base"} index={1} />
             <NavItem icon={<FeatherSettings style={{ width: 15, height: 15 }} />} label="Settings" href="/settings" selected={pathname === "/settings"} index={2} />
-            <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" selected={pathname.startsWith("/admin")} index={3} />
+            {isAdmin && (
+              <NavItem icon={<FeatherLayoutDashboard style={{ width: 15, height: 15 }} />} label="Admin" href="/admin" selected={pathname.startsWith("/admin")} index={3} />
+            )}
+            {chats && <ChatList chats={chats} />}
           </>
         )}
       </div>
@@ -257,10 +376,24 @@ export function AppSidebar({ variant = "main", upload, onClose }: AppSidebarProp
         <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#1f2228", border: "1px solid #474747", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <FeatherUser style={{ width: 14, height: 14, color: "#7d8187" }} />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <span style={{ fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>Alex Morgan</span>
-          <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab" }}>Admin</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 1, flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 13, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {profile?.full_name?.trim() || "Account"}
+          </span>
+          <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab", textTransform: "capitalize" }}>
+            {profile?.role ?? "user"}
+          </span>
         </div>
+        <button
+          onClick={signOut}
+          aria-label="Sign out"
+          title="Sign out"
+          style={{ background: "none", border: "none", color: "#a0a4ab", cursor: "pointer", display: "flex", alignItems: "center", padding: 6, borderRadius: 6, transition: "color 0.15s, background 0.15s" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#ffffff"; e.currentTarget.style.background = "#1f2228"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#a0a4ab"; e.currentTarget.style.background = "transparent"; }}
+        >
+          <FeatherLogOut style={{ width: 15, height: 15 }} />
+        </button>
       </div>
     </div>
   );

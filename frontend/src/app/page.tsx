@@ -9,19 +9,46 @@ import { ChatTopBar } from "@/components/chat/ChatTopBar";
 import { ChatInput } from "@/components/chat/ChatInput";
 
 export default function Home() {
-  const { messages, isStreaming, sendMessage } = useChat();
+  const {
+    conversations,
+    activeConversationId,
+    messages,
+    isStreaming,
+    sendMessage,
+    loadConversation,
+    newChat,
+    renameConversation,
+    deleteConversation,
+  } = useChat();
   const { files, isUploading, isIngesting, error, uploadFiles, deleteFile } = useFiles();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const chats = {
+    conversations,
+    activeConversationId,
+    onSelect: loadConversation,
+    onNewChat: newChat,
+    onRename: renameConversation,
+    onDelete: deleteConversation,
+  };
+
+  const uploadConfig = {
+    files,
+    isUploading,
+    isIngesting,
+    error,
+    fileInputRef,
+    onUploadFiles: uploadFiles,
+    onDeleteFile: deleteFile,
+  };
 
   return (
     <div style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden" }}>
 
       {/* Sidebar — hidden on mobile, always visible md+ */}
       <div className="hidden md:flex" style={{ alignSelf: "stretch" }}>
-        <AppSidebar
-          upload={{ files, isUploading, isIngesting, error, fileInputRef, onUploadFiles: uploadFiles, onDeleteFile: deleteFile }}
-        />
+        <AppSidebar upload={uploadConfig} chats={chats} />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -37,7 +64,8 @@ export default function Home() {
             style={{ position: "fixed", inset: 0, right: "auto", zIndex: 50, display: "flex", animation: "slideInLeft 0.2s ease-out" }}
           >
             <AppSidebar
-              upload={{ files, isUploading, isIngesting, error, fileInputRef, onUploadFiles: uploadFiles, onDeleteFile: deleteFile }}
+              upload={uploadConfig}
+              chats={chats}
               onClose={() => setSidebarOpen(false)}
             />
           </div>

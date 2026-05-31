@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   FeatherArrowRight,
   FeatherBot,
@@ -119,13 +120,29 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     try {
-      await new Promise((res) => setTimeout(res, 800));
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setError(error.message);
+        return;
+      }
       router.push("/");
+      router.refresh();
     } catch {
-      setError("Invalid email or password.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogle = async () => {
+    setError(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) setError(error.message);
   };
 
   return (
@@ -251,6 +268,7 @@ export default function LoginPage() {
           {/* Google */}
           <button
             type="button"
+            onClick={handleGoogle}
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
               width: "100%", padding: "11px 20px",

@@ -10,6 +10,8 @@
   "dependencies": {
     "@paper-design/shaders": "^0.0.76",
     "@subframe/core": "^1.154.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
     "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/typography": "^0.5.19",
     "clsx": "^2.1.1",
