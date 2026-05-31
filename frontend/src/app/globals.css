@@ -203,3 +203,44 @@ body {
   0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
   40%           { opacity: 1;   transform: scale(1); }
 }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.kb-animate-header {
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.kb-animate-cards {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+.kb-animate-table {
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+}
+.kb-stat-card {
+  animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.kb-file-row {
+  animation: fadeSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--row-index, 0) * 40ms);
+}
+.kb-drop-active {
+  outline: 1px solid #474747;
+  outline-offset: -1px;
+}

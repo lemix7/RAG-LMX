@@ -18,10 +18,12 @@ export default function KnowledgeBasePage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragOver(false);
     uploadFiles(e.dataTransfer.files);
   }, [uploadFiles]);
 
@@ -45,8 +47,10 @@ export default function KnowledgeBasePage() {
 
   return (
     <div
-      style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden" }}
-      onDragOver={(e) => e.preventDefault()}
+      style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden", transition: "outline 0.15s" }}
+      className={isDragOver ? "kb-drop-active" : ""}
+      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false); }}
       onDrop={handleDrop}
     >
       {/* Sidebar — hidden on mobile, always visible md+ */}
@@ -72,6 +76,7 @@ export default function KnowledgeBasePage() {
       )}
 
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "flex-start", alignSelf: "stretch", overflow: "auto", minWidth: 0 }}>
+        <div className="kb-animate-header" style={{ width: "100%", flexShrink: 0 }}>
         <KnowledgeBaseHeader
           fileCount={files.length}
           isUploading={isUploading}
@@ -81,13 +86,14 @@ export default function KnowledgeBasePage() {
           onUploadFiles={uploadFiles}
           onMenuClick={() => setSidebarOpen(true)}
         />
+        </div>
 
         {/* Body */}
         <div className="kb-body" style={{ display: "flex", width: "100%", flexDirection: "column", gap: 48, padding: "40px 40px 48px" }}>
           <StatCards total={files.length} ready={ready} processing={processing} errored={errored} />
 
           {/* Files card — same style as admin users table */}
-          <div style={{ display: "flex", flexDirection: "column", border: "1px solid #1f2228", background: "#0c0c0b" }}>
+          <div className="kb-animate-table" style={{ display: "flex", flexDirection: "column", border: "1px solid #1f2228", background: "#0c0c0b" }}>
             {/* Card header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 16px 12px", borderBottom: "1px solid #1f2228" }}>
               <span style={{ fontSize: 12, fontFamily: "var(--font-space-mono), ui-monospace, monospace", letterSpacing: "0.1em", color: "#7d8187", textTransform: "uppercase" }}>

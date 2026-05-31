@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Avatar } from "@/ui/components/Avatar";
 import { Badge } from "@/ui/components/Badge";
 import { DropdownMenu } from "@/ui/components/DropdownMenu";
 import { IconButton } from "@/ui/components/IconButton";
 import { Table } from "@/ui/components/Table";
 import {
+  FeatherArrowUpRight,
   FeatherEdit2,
   FeatherMoreHorizontal,
   FeatherPlus,
@@ -63,7 +65,8 @@ export default function UsersPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 48, padding: "40px 40px 48px" }} className="admin-body">
 
         {/* Page header */}
-        <div style={{ display: "flex", width: "100%", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+          style={{ display: "flex", width: "100%", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={{ fontSize: 36, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff", lineHeight: 1.2 }}>Users</span>
             <span style={{ fontSize: 16, fontFamily: FONT, letterSpacing: "-0.025em", color: "#7d8187", lineHeight: 1.5 }}>Manage who has access to the platform</span>
@@ -75,23 +78,33 @@ export default function UsersPage() {
           >
             <FeatherPlus style={{ width: 14, height: 14 }} /> Add User
           </button>
-        </div>
+        </motion.div>
 
         {/* Stat cards */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 1, background: "#1f2228" }}>
           {[
-            { label: "Total Users",   value: ALL_USERS.length,                                      icon: <FeatherUsers style={{ width: 15, height: 15 }} />, color: "#2563eb" },
-            { label: "Active",        value: activeCount,                                            icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#3a9a4a" },
-            { label: "Admins",        value: ALL_USERS.filter((u) => u.role === "Admin").length,    icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#c47800" },
-            { label: "Offline",       value: ALL_USERS.length - activeCount,                        icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#474747" },
-          ].map(({ label, value, icon, color }) => (
-            <div key={label} style={{ display: "flex", flex: 1, minWidth: 120, flexDirection: "column", gap: 12, padding: 16, background: "#0c0c0b" }}>
+            { label: "Total Users",   value: ALL_USERS.length,                                   icon: <FeatherUsers style={{ width: 15, height: 15 }} />, color: "#2563eb", delta: 12.5 },
+            { label: "Active",        value: activeCount,                                         icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#3a9a4a", delta: 5.1  },
+            { label: "Admins",        value: ALL_USERS.filter((u) => u.role === "Admin").length,  icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#c47800", delta: 0    },
+            { label: "Offline",       value: ALL_USERS.length - activeCount,                      icon: <FeatherUser  style={{ width: 15, height: 15 }} />, color: "#474747", delta: -3.2 },
+          ].map(({ label, value, icon, color, delta }, i) => (
+            <motion.div key={label}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: "flex", flex: 1, minWidth: 120, flexDirection: "column", gap: 10, padding: 16, background: "#0c0c0b" }}
+            >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 12, fontFamily: MONO, letterSpacing: "0.1em", color: "#7d8187", textTransform: "uppercase" }}>{label}</span>
                 <span style={{ color, display: "flex", opacity: 0.8 }}>{icon}</span>
               </div>
               <span style={{ fontSize: 36, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.2, color: "#ffffff" }}>{value}</span>
-            </div>
+              {delta !== 0 && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontFamily: MONO, letterSpacing: "0.08em", color: delta > 0 ? "#3a9a4a" : "#f05070" }}>
+                  <FeatherArrowUpRight style={{ width: 11, height: 11, transform: delta < 0 ? "scaleY(-1)" : undefined }} />
+                  {Math.abs(delta).toFixed(1)}% vs last month
+                </span>
+              )}
+            </motion.div>
           ))}
         </div>
 

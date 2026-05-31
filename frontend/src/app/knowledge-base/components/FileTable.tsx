@@ -82,8 +82,8 @@ export function FileTable({ files, filtered, pageFiles, onDelete, onClearFilters
         </tr>
       </thead>
       <tbody>
-        {pageFiles.map((file) => (
-          <FileRow key={file.name} file={file} onDelete={onDelete} />
+        {pageFiles.map((file, i) => (
+          <FileRow key={file.name} file={file} onDelete={onDelete} index={i} />
         ))}
       </tbody>
     </table>

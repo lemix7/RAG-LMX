@@ -1,3 +1,6 @@
+"use client";
+
+import { AnimatePresence, motion } from "motion/react";
 import type { FileInfo } from "@/lib/types";
 import { FeatherTrash2, FeatherFileText, FeatherFile, FeatherFileCode } from "@subframe/core";
 
@@ -40,9 +43,15 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
       <span className="text-caption-bold font-caption-bold text-subtext-color mb-1" style={{ fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.08em", color: "#fff",  }}>
         Knowledge Source ({files.length}) 
       </span>
-      {files.map((file) => (
-        <div
+      <AnimatePresence initial={false}>
+      {files.map((file, i) => (
+        <motion.div
           key={file.name}
+          layout
+          initial={{ opacity: 0, y: 8, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 12, scale: 0.95 }}
+          transition={{ duration: 0.22, delay: i * 0.03, ease: "easeOut" }}
           className="group/file flex w-full items-center gap-3 rounded-md border border-solid transition-colors"
           style={{ background: "#0C0C0B", border: "1px solid #2a2d34", padding: "10px 12px", borderRadius: 8 }}
           title={file.errorMessage ?? file.name}
@@ -62,16 +71,19 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
             </div>
           </div>
           {onDelete && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => onDelete(file.name)}
               className="opacity-0 group-hover/file:opacity-100 flex h-6 w-6 flex-none items-center justify-center rounded-md text-subtext-color transition-all hover:bg-error-50 hover:text-error-600 cursor-pointer"
               aria-label={`Delete ${file.name}`}
             >
               <FeatherTrash2 className="text-[14px]" />
-            </button>
+            </motion.button>
           )}
-        </div>
+        </motion.div>
       ))}
+      </AnimatePresence>
     </div>
   );
 }

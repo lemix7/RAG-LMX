@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "motion/react";
 
 const FONT = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
 
@@ -12,7 +13,10 @@ export function Actions({ children }: { children: React.ReactNode }) {
 
 export function GhostButton({ children }: { children: React.ReactNode }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ opacity: 0.75 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.15 }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -26,19 +30,19 @@ export function GhostButton({ children }: { children: React.ReactNode }) {
         fontFamily: FONT,
         letterSpacing: "-0.025em",
         cursor: "pointer",
-        transition: "opacity 0.15s",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.7"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
 
 export function FilledButton({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ opacity: 0.85 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.15 }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -52,13 +56,10 @@ export function FilledButton({ children, icon }: { children: React.ReactNode; ic
         fontFamily: FONT,
         letterSpacing: "-0.025em",
         cursor: "pointer",
-        transition: "opacity 0.15s",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
     >
       {icon}
       {children}
-    </button>
+    </motion.button>
   );
 }

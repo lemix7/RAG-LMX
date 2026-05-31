@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { motion } from "motion/react";
 import type { Message } from "@/lib/types";
 import { ChatMessage } from "./ChatMessage";
 import { FeatherMessageSquare } from "@subframe/core";
@@ -22,14 +23,19 @@ export function MessageList({ messages }: MessageListProps) {
         {/* <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#1f2228", border: "1px solid #474747", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <FeatherMessageSquare style={{ width: 20, height: 20, color: "#ffffff" }} />
         </div> */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}
+        >
           <span style={{ fontSize: 20, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.4, color: "#ffffff", textAlign: "center" }}>
             Ask anything
           </span>
           <span style={{ maxWidth: 280, fontSize: 14, fontFamily: "var(--font-inter), ui-sans-serif, sans-serif", letterSpacing: "-0.025em", lineHeight: 1.5, color: "#7d8187", textAlign: "center" }}>
             Upload documents in the sidebar, then ask questions about them.
           </span>
-        </div>
+        </motion.div>
       </div>
     );
   }
