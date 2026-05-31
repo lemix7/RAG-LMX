@@ -17,6 +17,7 @@ const MONO = "var(--font-space-mono), ui-monospace, monospace";
 interface FileRowProps {
   file: FileInfo;
   onDelete?: (name: string) => void;
+  index?: number;
 }
 
 function TypePill({ ext }: { ext: string }) {
@@ -70,7 +71,7 @@ const CELL: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-export function FileRow({ file, onDelete }: FileRowProps) {
+export function FileRow({ file, onDelete, index = 0 }: FileRowProps) {
   const ext = getExt(file.name);
   const FileIcon = ext === "CSV" ? FeatherFileSpreadsheet : ext === "MD" ? FeatherFileCode : FeatherFileText;
   const iconColor =
@@ -82,7 +83,8 @@ export function FileRow({ file, onDelete }: FileRowProps) {
 
   return (
     <tr
-      style={{ transition: "background 0.12s" }}
+      className="kb-file-row"
+      style={{ transition: "background 0.12s", ["--row-index" as string]: index } as React.CSSProperties}
       onMouseEnter={(e) => (e.currentTarget.style.background = "#1f2228")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >

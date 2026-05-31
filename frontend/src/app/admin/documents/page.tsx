@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { Badge } from "@/ui/components/Badge";
 import { Table } from "@/ui/components/Table";
 import {
   FeatherAlertCircle,
+  FeatherArrowUpRight,
   FeatherCheckCircle,
   FeatherDatabase,
   FeatherFileText,
@@ -86,26 +88,35 @@ export default function DocumentsPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 48, padding: "40px 40px 48px" }} className="admin-body">
 
         {/* Page header */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+          style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ fontSize: 36, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff", lineHeight: 1.2 }}>Documents</span>
           <span style={{ fontSize: 16, fontFamily: FONT, letterSpacing: "-0.025em", color: "#7d8187", lineHeight: 1.5 }}>All documents ingested into the knowledge base</span>
-        </div>
+        </motion.div>
 
         {/* Stat cards */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 1, background: "#1f2228" }}>
           {[
-            { label: "Total Docs",   value: String(DOCS.length),                                    icon: <FeatherFileText    style={{ width: 15, height: 15 }} />, color: "#2563eb" },
-            { label: "Ready",        value: String(DOCS.filter((d) => d.status === "ingested").length),  icon: <FeatherCheckCircle style={{ width: 15, height: 15 }} />, color: "#3a9a4a" },
-            { label: "Total Chunks", value: String(totalChunks),                                    icon: <FeatherDatabase    style={{ width: 15, height: 15 }} />, color: "#c47800" },
-            { label: "Total Size",   value: totalSize,                                              icon: <FeatherDatabase    style={{ width: 15, height: 15 }} />, color: "#474747" },
-          ].map(({ label, value, icon, color }) => (
-            <div key={label} style={{ display: "flex", flex: 1, minWidth: 120, flexDirection: "column", gap: 12, padding: 16, background: "#0c0c0b" }}>
+            { label: "Total Docs",   value: String(DOCS.length),                                        icon: <FeatherFileText    style={{ width: 15, height: 15 }} />, color: "#2563eb", delta: 8.2  },
+            { label: "Ready",        value: String(DOCS.filter((d) => d.status === "ingested").length),  icon: <FeatherCheckCircle style={{ width: 15, height: 15 }} />, color: "#3a9a4a", delta: 11.4 },
+            { label: "Total Chunks", value: String(totalChunks),                                        icon: <FeatherDatabase    style={{ width: 15, height: 15 }} />, color: "#c47800", delta: 9.7  },
+            { label: "Total Size",   value: totalSize,                                                  icon: <FeatherDatabase    style={{ width: 15, height: 15 }} />, color: "#474747", delta: 18.3 },
+          ].map(({ label, value, icon, color, delta }, i) => (
+            <motion.div key={label}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: "flex", flex: 1, minWidth: 120, flexDirection: "column", gap: 10, padding: 16, background: "#0c0c0b" }}
+            >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 12, fontFamily: MONO, letterSpacing: "0.1em", color: "#7d8187", textTransform: "uppercase" }}>{label}</span>
                 <span style={{ color, display: "flex", opacity: 0.8 }}>{icon}</span>
               </div>
               <span style={{ fontSize: 36, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.2, color: "#ffffff" }}>{value}</span>
-            </div>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontFamily: MONO, letterSpacing: "0.08em", color: "#3a9a4a" }}>
+                <FeatherArrowUpRight style={{ width: 11, height: 11 }} />
+                {delta}% vs last month
+              </span>
+            </motion.div>
           ))}
         </div>
 
