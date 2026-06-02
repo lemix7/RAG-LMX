@@ -148,48 +148,16 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-full w-full flex-col md:flex-row" style={{ background: "#0c0c0b" }}>
 
-      {/* ── Left panel — hidden on mobile ── */}
+      {/* ── Left panel — full-cover image, hidden on mobile ── */}
       <div
-        className="hidden md:flex"
-        style={{
-          flex: 1,
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 40px",
-          background: "linear-gradient(to bottom right, rgba(255, 99, 8, 0.1), rgba(255, 99, 8, 0.1), rgba(189, 201, 230, 0.1), rgba(151, 196, 255, 0.1), rgba(151, 196, 255, 0.1))",
-          borderRight: "1px solid #1f2228",
-        }}
+        className="hidden md:block"
+        style={{ flex: 1, position: "relative", overflow: "hidden" }}
       >
-        <div style={{ width: "100%", maxWidth: 380, display: "flex", flexDirection: "column", gap: 40 }}>
-          {/* Logo */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            {/* <div style={{ width: 52, height: 52, borderRadius: 14, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FeatherBot style={{ width: 26, height: 26, color: "#ffffff" }} />
-            </div> */}
-            <h1 style={{ fontSize: 28, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", lineHeight: 1.2, color: "#ffffff", textAlign: "center", margin: 0 }}>
-              RAG Admin
-            </h1>
-            <p style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", lineHeight: 1.6, color: "#7d8187", textAlign: "center", margin: 0 }}>
-              Your intelligent document assistant powered by retrieval-augmented generation.
-            </p>
-          </div>
-
-          {/* Features */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {features.map(({ icon, title, desc }) => (
-              <div key={title} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#1f2228", border: "1px solid #474747", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {icon}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <span style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>{title}</span>
-                  <span style={{ fontSize: 12, fontFamily: MONO, letterSpacing: "0.06em", lineHeight: 1.5, color: "#7d8187" }}>{desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <img
+          src="/sidebar-image.png"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </div>
 
       {/* ── Right panel — form ── */}

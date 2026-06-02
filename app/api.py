@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException , UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 
 from app.document_loader import load_documents
@@ -9,6 +9,7 @@ from app.vector_store import ingest_documents, delete_document
 from app.rag_chain import build_rag_chain, stream_ask
 from app.config import DOCS_DIR, LLM_MODEL
 from app.file_registry import load_registry, remove_from_registry
+from app.voice import transcribe, synthesize
 
 import json
 
@@ -41,6 +42,10 @@ app.add_middleware(
 
 class QuestionRequest(BaseModel):
     question: str
+
+
+class TTSRequest(BaseModel):
+    text: str
 
 @app.get("/health")
 def health():
@@ -100,6 +105,32 @@ def chat(body: QuestionRequest):
         yield f"\n\n__sources__:{json.dumps(sources)}"
 
     return StreamingResponse(token_generator(), media_type="text/plain")
+
+
+@app.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    audio_bytes = await file.read()
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="No audio data received.")
+    try:
+        text = transcribe(audio_bytes, file.filename or "audio.webm")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"text": text}
+
+
+@app.post("/tts")
+def tts(body: TTSRequest):
+    if not body.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+    try:
+        audio = synthesize(body.text)
+    except RuntimeError as e:
+        # Missing key or upstream failure — 503 so the client can degrade gracefully.
+        raise HTTPException(status_code=503, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return Response(content=audio, media_type="audio/mpeg")
 
 
 @app.post("/upload")

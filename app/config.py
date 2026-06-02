@@ -13,6 +13,15 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set. Please add it to your .env file.")
 
+# --- Voice settings ---
+# ElevenLabs powers text-to-speech (the spoken reply). Speech-to-text reuses the
+# OpenAI key above via Whisper. The ElevenLabs key is optional: when it's unset the
+# app still runs text-only and the /tts endpoint returns a clear error.
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # "Rachel"
+ELEVENLABS_TTS_MODEL = "eleven_multilingual_v2"
+WHISPER_MODEL = "whisper-1"
+
 # --- Sentence Transformer settings ---
 EMBEDDING_MODEL = "text-embedding-3-small"
 LLM_MODEL = "gpt-4o-mini"
@@ -38,7 +47,7 @@ RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # Minimum reranker score to include a chunk as a source.
 # Chunks scoring below this are dropped even if they're in the top k.
-RERANKER_SCORE_THRESHOLD = 1.0
+RERANKER_SCORE_THRESHOLD = 0.0
 
 
 

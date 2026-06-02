@@ -2,26 +2,48 @@
 
 import { useRef, useState, useCallback, KeyboardEvent } from "react";
 import { motion } from "motion/react";
-import { FeatherArrowUp, FeatherPaperclip } from "@subframe/core";
+import { FeatherArrowUp, FeatherPaperclip, FeatherMic, FeatherLoader } from "@subframe/core";
+import { useVoiceInput } from "@/lib/useVoiceInput";
 
 interface ChatInputProps {
   isStreaming: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onSend: (message: string) => void;
+  onSend: (message: string, opts?: { fromVoice?: boolean }) => void;
 }
 
 export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Tracks whether the current input text came from voice — used to auto-play the reply.
+  const cameFromVoice = useRef(false);
+  const { isRecording, isTranscribing, error: voiceError, startRecording, stopRecording } =
+    useVoiceInput();
 
   const handleSend = useCallback(() => {
     const trimmed = inputValue.trim();
     if (!trimmed || isStreaming) return;
-    onSend(trimmed);
+    onSend(trimmed, { fromVoice: cameFromVoice.current });
+    cameFromVoice.current = false;
     setInputValue("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   }, [inputValue, isStreaming, onSend]);
+
+  // Mic: tap to start, tap to stop. The transcript lands in the input box so the
+  // user can review and edit before sending.
+  const handleMicClick = useCallback(async () => {
+    if (isStreaming || isTranscribing) return;
+    if (isRecording) {
+      const text = await stopRecording();
+      if (text) {
+        setInputValue((prev) => (prev ? `${prev} ${text}` : text));
+        cameFromVoice.current = true;
+        requestAnimationFrame(() => textareaRef.current?.focus());
+      }
+    } else {
+      await startRecording();
+    }
+  }, [isStreaming, isTranscribing, isRecording, stopRecording, startRecording]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -85,17 +107,58 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
           <FeatherPaperclip style={{ width: 15, height: 15 }} />
         </button>
 
+        <motion.button
+          onClick={handleMicClick}
+          disabled={isStreaming || isTranscribing}
+          aria-label={isRecording ? "Stop recording" : "Record voice message"}
+          animate={isRecording ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+          transition={isRecording ? { duration: 1, repeat: Infinity, ease: "easeInOut" } : { duration: 0.15 }}
+          style={{
+            background: "none",
+            border: "none",
+            color: isRecording ? "#f05070" : "#a0a4ab",
+            cursor: isStreaming || isTranscribing ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            padding: 4,
+            flexShrink: 0,
+            marginBottom: 2,
+            transition: "color 0.15s",
+            opacity: isStreaming || isTranscribing ? 0.5 : 1,
+          }}
+          onMouseEnter={(e) => { if (!isRecording) e.currentTarget.style.color = "#ffffff"; }}
+          onMouseLeave={(e) => { if (!isRecording) e.currentTarget.style.color = "#a0a4ab"; }}
+        >
+          {isTranscribing ? (
+            <FeatherLoader className="animate-spin" style={{ width: 15, height: 15 }} />
+          ) : (
+            <FeatherMic style={{ width: 15, height: 15 }} />
+          )}
+        </motion.button>
+
         <textarea
           ref={textareaRef}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            // Manual typing means it's no longer a pure voice question.
+            cameFromVoice.current = false;
+          }}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           disabled={isStreaming}
           rows={1}
-          placeholder={isStreaming ? "Waiting for response…" : "Ask a question about your documents..."}
+          placeholder={
+            isStreaming
+              ? "Waiting for response…"
+              : isRecording
+              ? "Listening… tap the mic to stop"
+              : isTranscribing
+              ? "Transcribing…"
+              : "Ask a question about your documents..."
+          }
           style={{
             flex: 1,
             resize: "none",
@@ -151,7 +214,7 @@ export function ChatInput({ isStreaming, fileInputRef, onSend }: ChatInputProps)
           textAlign: "center",
         }}
       >
-        Enter to send · Shift+Enter for new line
+        {voiceError ? voiceError : "Enter to send · Shift+Enter for new line"}
       </motion.span>
     </div>
   );

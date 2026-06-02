@@ -1,0 +1,1 @@
+{"detail":"ElevenLabs TTS failed (402): {\"detail\":{\"type\":\"payment_required\",\"code\":\"paid_plan_required\",\"message\":\"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.\",\"status\":\"payment_required\",\"request_id\":\"35c2a6c13cbdf76bd79cde9aa68400c0\"}}"}

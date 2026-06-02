@@ -18,6 +18,8 @@ export interface Message {
   sources?: Source[];
   isStreaming?: boolean;
   error?: string;
+  /** True when the question was asked by voice — the reply should auto-play once. */
+  fromVoice?: boolean;
 }
 
 // ─── Auth / Conversation Types ──────────────────────────────────────────────

@@ -78,9 +78,10 @@ export function useChat() {
   );
 
   const sendMessage = useCallback(
-    async (question: string) => {
+    async (question: string, opts?: { fromVoice?: boolean }) => {
       const trimmed = question.trim();
       if (!trimmed || isStreaming) return;
+      const fromVoice = opts?.fromVoice ?? false;
 
       setError(null);
 
@@ -146,11 +147,12 @@ export function useChat() {
           }
         }
 
-        // Finalise the assistant message.
+        // Finalise the assistant message. fromVoice is set only now (not during
+        // streaming) so ChatMessage auto-plays exactly once, on the final content.
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: accumulatedContent, sources: resolvedSources, isStreaming: false }
+              ? { ...m, content: accumulatedContent, sources: resolvedSources, isStreaming: false, fromVoice }
               : m
           )
         );
