@@ -49,7 +49,7 @@ def ask(question: str, chain, retriever) -> dict:
         'source_docs': source_docs,
     }
 
-
+# does the same job as ask() but with token streaming effect
 def stream_ask(question: str, chain, retriever) -> dict:
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")

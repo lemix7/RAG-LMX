@@ -18,38 +18,35 @@ from .config import (
 )
 from .vector_store import get_vector_store
 
-
+# This class overrides the methods of langchain original corss encoder reranker since it does not have the ability of dropping the doc under certain condtions 
 class ThresholdReranker(CrossEncoderReranker):
-    """
-    CrossEncoderReranker + score threshold.
-    Drops chunks that score below the threshold so the LLM only
-    receives genuinely relevant context.
-    """
+   
     score_threshold: float = 0.0
 
-    def compress_documents(
-        self,
-        documents: Sequence[Document],
-        query: str,
-        callbacks: Callbacks | None = None,
-    ) -> Sequence[Document]:
-        scores = self.model.score([(query, doc.page_content)
+    def compress_documents(self, documents: Sequence[Document], query: str, callbacks: Callbacks | None = None) -> Sequence[Document]:
+
+        scores = self.model.score([(query, doc.page_content)  # Score every chunk against the question
                                   for doc in documents])
+
+        # pair each chunk with it relevance score
         docs_with_scores = list(zip(documents, scores, strict=False))
+
         result = sorted(docs_with_scores,
+                        # sort chunks by the highest score
                         key=operator.itemgetter(1), reverse=True)
-        return [
-            doc for doc, score in result[: self.top_n]
-            if score >= self.score_threshold
-        ]
+
+        final_docs = []
+
+        for doc, score in result[:self.top_n]: # create a list copy of the top N docs and loop them
+            if score >= self.score_threshold:
+                final_docs.append(doc) # insert only the docs that are above the threshold score
+
+        return final_docs
 
 
-def _fetch_all_documents_from_chroma() -> list[Document]:
-    """
-    Loads every stored chunk out of ChromaDB so BM25 can build its index.
-    BM25 is not a persistent database — it lives in memory and needs the raw
-    text of every chunk at startup. Returns empty list if collection is empty.
-    """
+def _fetch_all_documents_from_chroma() -> list[Document]: 
+    # return a list of chunks in raw text alongside their metadata for conduction the keyword search (BM25) 
+    
     vector_store = get_vector_store()
     result = vector_store.get(include=["documents", "metadatas"])
 
@@ -61,12 +58,16 @@ def _fetch_all_documents_from_chroma() -> list[Document]:
             "Warning: ChromaDB collection is empty. BM25 retriever will return no results.")
         return []
 
-    documents = [
-        Document(page_content=text, metadata=meta or {})
-        for text, meta in zip(texts, metadatas)
-    ]
+    documents = []
+
+    for text, meta in zip(texts, metadatas):
+        if meta is None:
+            meta = {}
+        doc = Document(page_content=text, metadata=meta) 
+        documents.append(doc)
+
     print(f"Loaded {len(documents)} chunks from ChromaDB for BM25 index.")
-    return documents
+    return documents 
 
 
 def get_retriever(k: int = RETRIEVER_K):
@@ -104,7 +105,7 @@ def get_retriever(k: int = RETRIEVER_K):
 
     # Reranker
     cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
-    reranker = ThresholdReranker(
+    reranker = ThresholdReranker( # This is the object of the class that overrides the original langchain class
         model=cross_encoder,
         top_n=k,
         score_threshold=RERANKER_SCORE_THRESHOLD,

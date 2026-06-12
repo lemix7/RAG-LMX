@@ -34,9 +34,7 @@ export async function listConversations(): Promise<Conversation[]> {
 /** Create a new conversation owned by the current user. */
 export async function createConversation(title = "New chat"): Promise<Conversation> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const {data: { user }} = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
@@ -83,7 +81,7 @@ export async function saveMessage(
   if (error) throw new Error(error.message);
 }
 
-/** Rename a conversation (also bumps updated_at via touch on the caller side). */
+
 export async function renameConversation(id: string, title: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase
@@ -93,7 +91,7 @@ export async function renameConversation(id: string, title: string): Promise<voi
   if (error) throw new Error(error.message);
 }
 
-/** Delete a conversation (messages cascade). */
+
 export async function deleteConversation(id: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.from("conversations").delete().eq("id", id);
@@ -110,7 +108,7 @@ export async function touchConversation(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-/** Derive a short title from the first user message. */
+/** Extract a short title from the first user message */
 export function deriveTitle(question: string): string {
   const trimmed = question.trim().replace(/\s+/g, " ");
   return trimmed.length > 40 ? `${trimmed.slice(0, 40)}…` : trimmed || "New chat";

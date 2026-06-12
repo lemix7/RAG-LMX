@@ -1,9 +1,3 @@
-"""Voice helpers: speech-to-text (OpenAI Whisper) and text-to-speech (ElevenLabs).
-
-Speech-to-text reuses the existing OpenAI key. Text-to-speech uses ElevenLabs and
-is optional — if ELEVENLABS_API_KEY is unset, synthesize() raises a clear error so
-the caller can degrade gracefully while text chat keeps working.
-"""
 import io
 
 import httpx
@@ -21,13 +15,13 @@ ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 
 
 def transcribe(audio_bytes: bytes, filename: str = "audio.webm") -> str:
-    """Transcribe recorded audio to text using OpenAI Whisper."""
+# audio_bytes : the raw audio recorded from the microphone
     if not audio_bytes:
         raise ValueError("No audio data to transcribe.")
 
     client = OpenAI(api_key=OPENAI_API_KEY)
-    # The SDK infers the format from the filename, so keep the original extension.
-    buffer = io.BytesIO(audio_bytes)
+
+    buffer = io.BytesIO(audio_bytes) # creates a temporary file like object for the audio since the model only works with file no binary
     buffer.name = filename
 
     try:
@@ -41,8 +35,8 @@ def transcribe(audio_bytes: bytes, filename: str = "audio.webm") -> str:
     return result.text.strip()
 
 
-def synthesize(text: str) -> bytes:
-    """Synthesize text to speech with ElevenLabs. Returns MP3 bytes."""
+def synthesize(text: str) -> bytes: # converts text into spoken speech 
+    
     if not text or not text.strip():
         raise ValueError("No text to synthesize.")
     if not ELEVENLABS_API_KEY:

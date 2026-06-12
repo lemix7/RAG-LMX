@@ -84,7 +84,7 @@ export async function triggerIngest(): Promise<IngestResponse> {
 // ─── Files ────────────────────────────────────────────────────────────────────
 
 export async function getFiles(): Promise<FilesResponse> {
-  const response = await fetch("/api/files", { cache: "no-store" });
+  const response = await fetch("/api/files", { cache: "no-store" }); // the chache is disabled
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.detail ?? "Failed to load files");

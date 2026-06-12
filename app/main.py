@@ -69,16 +69,21 @@ def delete_ingested_document():
         return
 
     to_delete = []
+    
     for token in raw.split(','):
+
         token = token.strip()
+
         if token.isdigit():
             idx = int(token) - 1
             if 0 <= idx < len(sources):
                 to_delete.append(sources[idx])
             else:
                 print(f"  Invalid number: {token}")
+
         elif token in sources:
             to_delete.append(token)
+
         else:
             print(f"  Not found: {token}")
 

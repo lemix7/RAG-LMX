@@ -1,6 +1,8 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+// This file is reponsible of managing the auth session
+
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }

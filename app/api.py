@@ -23,7 +23,7 @@ def get_chain_and_retriever():
         chain, retriever = build_rag_chain()
     return chain, retriever
 
-def invalidate_chain():
+def invalidate_chain(): # called when the vector store is changed 
     global chain, retriever
     chain = None
     retriever = None
@@ -34,8 +34,8 @@ app = FastAPI(title="RAG-LMX")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=True, # allow cookies and auth headers
+    allow_methods=["*"], # allow all http method like GET , POST
     allow_headers=["*"],
 )
 
@@ -98,10 +98,10 @@ def chat(body: QuestionRequest):
             "page": page,
         })
 
-    # for streaming the response currently now working in the fast api docs
-    def token_generator():
+
+    def token_generator(): # Streams the answer in the frontend
         for chunk in result["stream"]:
-            yield chunk
+            yield chunk # returns each token individually
         yield f"\n\n__sources__:{json.dumps(sources)}"
 
     return StreamingResponse(token_generator(), media_type="text/plain")
@@ -124,7 +124,7 @@ def tts(body: TTSRequest):
     if not body.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty.")
     try:
-        audio = synthesize(body.text)
+        audio = synthesize(body.text) # convert text into spoken speech
     except RuntimeError as e:
         # Missing key or upstream failure — 503 so the client can degrade gracefully.
         raise HTTPException(status_code=503, detail=str(e))
@@ -133,7 +133,8 @@ def tts(body: TTSRequest):
     return Response(content=audio, media_type="audio/mpeg")
 
 
-@app.post("/upload")
+# saves files to the docs folder
+@app.post("/upload") 
 async def upload(file: UploadFile = File(...)):
     allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
     suffix = "." + file.filename.split(".")[-1].lower()
@@ -153,14 +154,15 @@ def delete_file(file_name: str):
         raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
     try:
         chunks_removed = delete_document(file_name)
-        remove_from_registry(file_name)
+        remove_from_registry(file_name) # removes the hashing of the document
         file_path.unlink()
-        invalidate_chain()
+        invalidate_chain() # sets the chain & retriver into none
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"Deleted '{file_name}' ({chunks_removed} chunks removed)"}
 
 
+# list the ingested files 
 @app.get("/files")
 def list_files():
     allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}

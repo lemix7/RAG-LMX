@@ -18,9 +18,9 @@ if not OPENAI_API_KEY:
 # OpenAI key above via Whisper. The ElevenLabs key is optional: when it's unset the
 # app still runs text-only and the /tts endpoint returns a clear error.
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # "Rachel"
-ELEVENLABS_TTS_MODEL = "eleven_multilingual_v2"
-WHISPER_MODEL = "whisper-1"
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # The speaker voice used ("Rachel")
+ELEVENLABS_TTS_MODEL = "eleven_multilingual_v2" # The model that turns answer into spoken audio
+WHISPER_MODEL = "whisper-1" # converts spoken voice into text 
 
 # --- Sentence Transformer settings ---
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -31,11 +31,11 @@ CHUNK_SIZE = 800
 CHUNK_OVERLAP = 150
 
 COLLECTION_NAME = "rag_documents"
-RETRIEVER_K = 5
+RETRIEVER_K = 5 # Number of junks retrived from the vector DB
 
 # --- Hybrid RAG settings ---
 
-# Number of retriived chunks from the vector store and the BM25 retriever
+# Number of retrived chunks from the vector store and the BM25 retriever (COMBINED)
 ENSEMBLE_K = 10
 
 # This weight determines the importance of the vector retriever compared to the BM25 retriever on the final retriever

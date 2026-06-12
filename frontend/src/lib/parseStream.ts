@@ -17,8 +17,8 @@ export async function* parseStream(response: Response): AsyncGenerator<StreamEve
     return;
   }
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
+  const reader = response.body.getReader(); // read the stream chunk by chunk
+  const decoder = new TextDecoder(); // decoder to convert binary into raw text
   let buffer = "";
 
   try {
@@ -26,16 +26,16 @@ export async function* parseStream(response: Response): AsyncGenerator<StreamEve
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, { stream: true }); // convert binary into raw text
       buffer += chunk;
 
-      const markerIndex = buffer.indexOf(SOURCES_MARKER);
+      const markerIndex = buffer.indexOf(SOURCES_MARKER); // index that points to the sources in the raw text
 
       if (markerIndex === -1) {
-        // Marker not yet found — yield the new chunk as a token
+        // Marker not yet found  yield the new chunk as a token
         yield { type: "token", content: chunk };
       } else {
-        // Marker found — yield text before the marker, then parse sources
+        // Marker found  yield text before the marker, then parse sources
         const textBefore = buffer.slice(0, markerIndex);
         // Calculate what's new since last yield
         const previousLength = buffer.length - chunk.length;
