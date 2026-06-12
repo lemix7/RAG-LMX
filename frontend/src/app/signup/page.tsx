@@ -210,7 +210,7 @@ export default function SignupPage() {
               Create your account
             </h2>
             <p style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", lineHeight: 1.5, color: "#7d8187", textAlign: "center", margin: 0 }}>
-              Get started with RAG Admin in seconds
+              Create your account to get started
             </p>
           </div>
 

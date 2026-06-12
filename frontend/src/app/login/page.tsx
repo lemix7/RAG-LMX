@@ -180,7 +180,7 @@ export default function LoginPage() {
               Welcome back
             </h2>
             <p style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", lineHeight: 1.5, color: "#7d8187", textAlign: "center", margin: 0 }}>
-              Sign in to your RAG Admin account
+              Sign in to your account
             </p>
           </div>
 
