@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { BACKEND_URL } from "@/lib/backend";
+import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
 export async function DELETE(
   _request: NextRequest,
@@ -9,7 +9,10 @@ export async function DELETE(
   try {
     const backendResponse = await fetch(
       `${BACKEND_URL}/files/${encodeURIComponent(filename)}`,
-      { method: "DELETE" }
+      {
+        method: "DELETE",
+        headers: { ...(await backendAuthHeaders()) }, // forward the user's Supabase JWT so the backend scopes to them
+      }
     );
     const data = await backendResponse.json().catch(() => ({ detail: "Invalid response" }));
     return new Response(JSON.stringify(data), {

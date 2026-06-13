@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { BACKEND_URL } from "@/lib/backend";
+import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
 // This file is a proxy (middle man) between the browser and the backend server. the browser use it to make calls to the backend
 
@@ -9,7 +9,10 @@ export async function POST(request: NextRequest) {
 
     const backendResponse = await fetch(`${BACKEND_URL}/chat`, { // send the question to the backend
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(await backendAuthHeaders()), // forward the user's Supabase JWT so the backend scopes to them
+      },
       body: JSON.stringify(body),
     });
 

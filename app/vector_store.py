@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from langchain_chroma import Chroma
@@ -6,19 +7,31 @@ from langchain_openai import OpenAIEmbeddings
 
 from .config import CHROMA_DIR, COLLECTION_NAME, EMBEDDING_MODEL
 
+
+def _safe_user_suffix(user_id: str) -> str:
+   # Replaces any character Chroma doesn't allow in collection names with an underscore.
+    suffix = re.sub(r"[^a-zA-Z0-9._-]", "_", str(user_id))
+    if not suffix:
+        raise ValueError(f"Invalid user_id for collection name: {user_id!r}")
+    return suffix
+
+
+def collection_name_for(user_id: str) -> str:
+    return f"{COLLECTION_NAME}_{_safe_user_suffix(user_id)}"
+
+
 def get_embeddings() -> OpenAIEmbeddings:
     return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30) # Return openAI embedding client
 
-def get_vector_store() -> Chroma:
+def get_vector_store(user_id: str) -> Chroma:
     return Chroma(
-        collection_name=COLLECTION_NAME,
+        collection_name=collection_name_for(user_id),
         embedding_function=get_embeddings(),
         persist_directory=CHROMA_DIR,
     )
 
-def list_ingested_sources() -> list[str]:
-    """Returns a sorted list of unique source file basenames in the vector store."""
-    collection = get_vector_store()._collection
+def list_ingested_sources(user_id: str) -> list[str]:
+    collection = get_vector_store(user_id)._collection
     all_results = collection.get(include=["metadatas"])
     sources = {
         Path(meta.get("source", "")).name
@@ -28,11 +41,11 @@ def list_ingested_sources() -> list[str]:
     return sorted(sources)
 
 
-def delete_document(file_name: str) -> int:
-   
-    collection = get_vector_store()._collection
+def delete_document(user_id: str, file_name: str) -> int:
+
+    collection = get_vector_store(user_id)._collection
     all_results = collection.get(include=["metadatas"])
-    ids_to_delete = [ # Pair chunks ID's with their metadata 
+    ids_to_delete = [ # Pair chunks ID's with their metadata
         doc_id
         for doc_id, meta in zip(all_results["ids"], all_results["metadatas"])
         if Path(meta.get("source", "")).name == file_name
@@ -42,16 +55,16 @@ def delete_document(file_name: str) -> int:
     return len(ids_to_delete)
 
 
-def ingest_documents(chunks: list[Document]) -> Chroma:
-    
+def ingest_documents(user_id: str, chunks: list[Document]) -> Chroma:
+
     if not chunks:
         raise ValueError("No chunks provided for ingestion")
 
     try:
-        vector_store = get_vector_store()
+        vector_store = get_vector_store(user_id)
         vector_store.add_documents(chunks)
     except Exception as e:
         raise RuntimeError(f"Failed to ingest documents: {e}") from e
 
-    print(f"Ingested {len(chunks)} chunks into vector store")
+    print(f"Ingested {len(chunks)} chunks into vector store for user {user_id}")
     return vector_store

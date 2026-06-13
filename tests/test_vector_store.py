@@ -1,14 +1,11 @@
-import sys
-sys.path.insert(0, '/Users/ahmad/Desktop/RAG-LMX/app')
-
 from unittest.mock import MagicMock, patch
 from langchain_community.docstore.document import Document
-from vector_store import get_embeddings, get_vector_store, ingest_documents
+from app.vector_store import get_embeddings, get_vector_store, ingest_documents
 
 
 def test_get_embeddings_returns_correct_model():
     print("\n--- Test 1: get_embeddings returns OpenAIEmbeddings with correct model ---")
-    with patch("vector_store.OpenAIEmbeddings") as MockEmbeddings:
+    with patch("app.vector_store.OpenAIEmbeddings") as MockEmbeddings:
         mock_instance = MagicMock()
         mock_instance.model = "text-embedding-3-small"
         MockEmbeddings.return_value = mock_instance
@@ -20,12 +17,12 @@ def test_get_embeddings_returns_correct_model():
 
 def test_get_vector_store_returns_chroma():
     print("\n--- Test 2: get_vector_store returns a Chroma instance ---")
-    with patch("vector_store.Chroma") as MockChroma, \
-         patch("vector_store.get_embeddings") as MockEmbeddings:
+    with patch("app.vector_store.Chroma") as MockChroma, \
+         patch("app.vector_store.get_embeddings") as MockEmbeddings:
         mock_instance = MagicMock()
         MockChroma.return_value = mock_instance
         MockEmbeddings.return_value = MagicMock()
-        result = get_vector_store()
+        result = get_vector_store("test-user")
         assert result == mock_instance
         MockChroma.assert_called_once()
     print("PASSED")
@@ -34,7 +31,7 @@ def test_get_vector_store_returns_chroma():
 def test_ingest_documents_raises_on_empty_list():
     print("\n--- Test 3: ingest_documents raises ValueError on empty chunks ---")
     try:
-        ingest_documents([])
+        ingest_documents("test-user", [])
         assert False, "Expected ValueError was not raised"
     except ValueError as e:
         assert "No chunks provided" in str(e)
@@ -49,8 +46,8 @@ def test_ingest_documents_calls_add_documents():
     ]
 
     mock_store = MagicMock()
-    with patch("vector_store.get_vector_store", return_value=mock_store):
-        result = ingest_documents(chunks)
+    with patch("app.vector_store.get_vector_store", return_value=mock_store):
+        result = ingest_documents("test-user", chunks)
         mock_store.add_documents.assert_called_once_with(chunks)
         assert result == mock_store
     print("PASSED")
@@ -61,8 +58,8 @@ def test_ingest_documents_returns_vector_store():
     chunks = [Document(page_content="Test chunk", metadata={})]
     mock_store = MagicMock()
 
-    with patch("vector_store.get_vector_store", return_value=mock_store):
-        result = ingest_documents(chunks)
+    with patch("app.vector_store.get_vector_store", return_value=mock_store):
+        result = ingest_documents("test-user", chunks)
         assert result == mock_store
     print("PASSED")
 
@@ -73,9 +70,9 @@ def test_ingest_documents_wraps_exception():
     mock_store = MagicMock()
     mock_store.add_documents.side_effect = Exception("API timeout")
 
-    with patch("vector_store.get_vector_store", return_value=mock_store):
+    with patch("app.vector_store.get_vector_store", return_value=mock_store):
         try:
-            ingest_documents(chunks)
+            ingest_documents("test-user", chunks)
             assert False, "Expected RuntimeError was not raised"
         except RuntimeError as e:
             assert "Failed to ingest documents" in str(e)
@@ -94,10 +91,10 @@ def test_ingest_documents_prints_chunk_count(capsys=None):
     ]
     mock_store = MagicMock()
 
-    with patch("vector_store.get_vector_store", return_value=mock_store):
+    with patch("app.vector_store.get_vector_store", return_value=mock_store):
         f = io.StringIO()
         with redirect_stdout(f):
-            ingest_documents(chunks)
+            ingest_documents("test-user", chunks)
         output = f.getvalue()
         assert "2" in output
     print("PASSED")

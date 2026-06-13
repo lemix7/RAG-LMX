@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { BACKEND_URL } from "@/lib/backend";
+import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,7 +7,10 @@ export async function POST(request: NextRequest) {
 
     const backendResponse = await fetch(`${BACKEND_URL}/tts`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(await backendAuthHeaders()), // forward the user's Supabase JWT (backend gates voice routes too)
+      },
       body: JSON.stringify(body),
     });
 

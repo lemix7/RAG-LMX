@@ -19,8 +19,8 @@ Context:
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-def build_rag_chain():
-    retriever = get_retriever()
+def build_rag_chain(user_id: str):
+    retriever = get_retriever(user_id)
     llm = ChatOpenAI(model=LLM_MODEL, temperature=0, timeout=30, max_retries=2)
 
     prompt = ChatPromptTemplate.from_messages([

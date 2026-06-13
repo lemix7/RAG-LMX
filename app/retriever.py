@@ -15,6 +15,7 @@ from .config import (
     BM25_WEIGHT,
     RERANKER_MODEL,
     RERANKER_SCORE_THRESHOLD,
+    RERANKER_TOP_N
 )
 from .vector_store import get_vector_store
 
@@ -44,10 +45,11 @@ class ThresholdReranker(CrossEncoderReranker):
         return final_docs
 
 
-def _fetch_all_documents_from_chroma() -> list[Document]: 
-    # return a list of chunks in raw text alongside their metadata for conduction the keyword search (BM25) 
-    
-    vector_store = get_vector_store()
+def _fetch_all_documents_from_chroma(user_id: str) -> list[Document]:
+    # return a list of the user's chunks in raw text alongside their metadata for conducting the keyword search (BM25).
+    # Reading only the user's collection means the BM25 index is automatically scoped to that user.
+
+    vector_store = get_vector_store(user_id)
     result = vector_store.get(include=["documents", "metadatas"])
 
     texts = result.get("documents") or []
@@ -70,23 +72,19 @@ def _fetch_all_documents_from_chroma() -> list[Document]:
     return documents 
 
 
-def get_retriever(k: int = RETRIEVER_K):
-    """
-    Builds the full hybrid retrieval pipeline:
-      Vector retriever + BM25 retriever → EnsembleRetriever → CrossEncoder reranker
-    Falls back to vector-only if ChromaDB is empty (e.g. before first ingest).
-    """
+def get_retriever(user_id: str, k: int = RETRIEVER_K):
+    
     if k < 1:
         raise ValueError(f"k must be at least 1, got {k}")
 
-    vector_store = get_vector_store()
+    vector_store = get_vector_store(user_id)
 
     vector_retriever = vector_store.as_retriever(
         search_type="similarity",
         search_kwargs={"k": ENSEMBLE_K},
     )
 
-    all_docs = _fetch_all_documents_from_chroma()
+    all_docs = _fetch_all_documents_from_chroma(user_id)
 
     if not all_docs:
         print("Falling back to vector-only retriever (no documents in store yet).")
@@ -107,7 +105,7 @@ def get_retriever(k: int = RETRIEVER_K):
     cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
     reranker = ThresholdReranker( # This is the object of the class that overrides the original langchain class
         model=cross_encoder,
-        top_n=k,
+        top_n=RERANKER_TOP_N,
         score_threshold=RERANKER_SCORE_THRESHOLD,
     )
 

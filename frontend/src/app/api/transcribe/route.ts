@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { BACKEND_URL } from "@/lib/backend";
+import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
 
     const backendResponse = await fetch(`${BACKEND_URL}/transcribe`, {
       method: "POST",
+      headers: { ...(await backendAuthHeaders()) }, // forward the user's Supabase JWT (no Content-Type — fetch sets the multipart boundary)
       body: formData,
-      // NOTE: Do NOT set Content-Type — fetch sets the multipart boundary automatically
     });
 
     const data = await backendResponse.json().catch(() => ({ detail: "Invalid response" }));

@@ -11,8 +11,17 @@ from .config import DOCS_DIR
 from .file_registry import is_already_ingested, mark_as_ingested
 
 
-def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
+def docs_dir_for(user_id: str) -> Path:
+    path = DOCS_DIR / user_id
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def load_documents(user_id: str, directory: Path | None = None) -> list[Document]:
     documents = []
+
+    if directory is None:
+        directory = docs_dir_for(user_id)
 
     loaders = {
         ".pdf": PyPDFLoader,
@@ -41,7 +50,7 @@ def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
                 continue
 
             #  skip prev ingested files
-            if is_already_ingested(file_path):
+            if is_already_ingested(user_id, file_path):
                 print(f"Skipping already-ingested file: {file_path.name}")
                 continue
 
@@ -49,7 +58,7 @@ def load_documents(directory: Path = DOCS_DIR) -> list[Document]:
             try:
                 loader = loaders[file_path.suffix.lower()](str(file_path))
                 documents.extend(loader.load())
-                mark_as_ingested(file_path)
+                mark_as_ingested(user_id, file_path)
                 print(f"Loaded {file_path.name}")
             except Exception as e:
                 print(f"Failed to load {file_path.name}: {e}")
