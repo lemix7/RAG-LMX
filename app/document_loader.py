@@ -17,6 +17,38 @@ def docs_dir_for(user_id: str) -> Path:
     return path
 
 
+# Supported document extensions, shared by the loaders below and the admin stats.
+ALLOWED_EXTENSIONS = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+
+
+def aggregate_document_stats() -> dict:
+    
+    # used by the admin dashboard . returns the dashboard status
+    total_count = 0
+    total_bytes = 0
+    by_type: dict[str, int] = {}
+
+    if DOCS_DIR.exists():
+        for user_dir in DOCS_DIR.iterdir():
+            if not user_dir.is_dir():
+                continue
+            for f in user_dir.iterdir():
+                if not f.is_file():
+                    continue
+                ext = f.suffix.lower()
+                if ext not in ALLOWED_EXTENSIONS:
+                    continue
+                total_count += 1
+                total_bytes += f.stat().st_size
+                by_type[ext.lstrip(".")] = by_type.get(ext.lstrip("."), 0) + 1
+
+    return {
+        "total_documents": total_count,
+        "total_bytes": total_bytes,
+        "by_type": by_type,
+    }
+
+
 def load_documents(user_id: str, directory: Path | None = None) -> list[Document]:
     documents = []
 

@@ -351,7 +351,7 @@ export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSide
                     Drop files or click to browse
                   </span>
                   <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab", textAlign: "center" }}>
-                    PDF · DOCX · TXT · MD · CSV
+                    PDF · TXT · MD · CSV
                   </span>
                 </div>
               </>

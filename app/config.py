@@ -22,6 +22,9 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 # only needed for legacy HS256 projects
 SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
+# Shared secret for admin-only, system-wide endpoints
+ADMIN_API_SECRET = os.getenv("ADMIN_API_SECRET")
+
 # User id used by the CLI, which has no auth. Maps to the rag_documents_local collection.
 CLI_USER_ID = "local"
 

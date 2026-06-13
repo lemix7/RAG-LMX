@@ -53,8 +53,9 @@ interface Stats {
 interface WeekPoint { week_label: string; count: number; }
 interface RecentProfile { id: string; full_name: string | null; created_at: string; }
 interface RecentConv { id: string; title: string; user_id: string; created_at: string; }
-interface FileInfo { name: string; size: number; ingested: boolean; }
 interface UserRow { id: string; full_name: string | null; role: string; created_at: string; email: string; }
+// System-wide document stats from the backend (across all users).
+interface DocumentStats { total_documents: number; total_bytes: number; by_type: Record<string, number>; }
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -178,19 +179,14 @@ function AreaChart({ convData, userData }: { convData: WeekPoint[]; userData: We
 }
 
 /* ─── Donut chart (real file data) ───────────────────────────────── */
-function buildDonutSlices(files: FileInfo[]) {
-  const counts: Record<string, number> = {};
-  for (const f of files) {
-    const ext = f.name.split(".").pop()?.toLowerCase() ?? "other";
-    counts[ext] = (counts[ext] ?? 0) + 1;
-  }
-  return Object.entries(counts)
+function buildDonutSlices(byType: Record<string, number>) {
+  return Object.entries(byType)
     .sort((a, b) => b[1] - a[1])
-    .map(([ext, value]) => ({ label: ext.toUpperCase(), value, color: EXT_COLORS[ext] ?? C.muted }));
+    .map(([ext, value]) => ({ label: ext.toUpperCase(), value, color: EXT_COLORS[ext.toLowerCase()] ?? C.muted }));
 }
 
-function DonutChart({ files }: { files: FileInfo[] }) {
-  const data = buildDonutSlices(files);
+function DonutChart({ byType }: { byType: Record<string, number> }) {
+  const data = buildDonutSlices(byType);
   const total = data.reduce((s, d) => s + d.value, 0);
   const R = 52; const r = 32; const cx = 70; const cy = 70;
 
@@ -317,7 +313,7 @@ function formatDate(iso: string) {
 export default function AdminPage() {
   const [period, setPeriod] = useState<(typeof PERIODS)[number]>("8w");
   const [stats, setStats] = useState<Stats | null>(null);
-  const [files, setFiles] = useState<FileInfo[]>([]);
+  const [docStats, setDocStats] = useState<DocumentStats>({ total_documents: 0, total_bytes: 0, by_type: {} });
   const [weeklyConvs, setWeeklyConvs] = useState<WeekPoint[]>([]);
   const [weeklyUsers, setWeeklyUsers] = useState<WeekPoint[]>([]);
   const [recentProfiles, setRecentProfiles] = useState<RecentProfile[]>([]);
@@ -331,25 +327,23 @@ export default function AdminPage() {
       const [
         { count: userCount },
         { count: convCount },
-        filesRes,
         statsRes,
         { data: profilesData },
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("conversations").select("*", { count: "exact", head: true }),
-        fetch("/api/files", { cache: "no-store" }).then((r) => r.json()).catch(() => ({ files: [] })),
         fetch("/api/admin/stats").then((r) => r.json()).catch(() => ({})),
         supabase.from("profiles").select("id, full_name, role, created_at").order("created_at", { ascending: false }).limit(5),
       ]);
 
-      const fileList: FileInfo[] = filesRes.files ?? [];
-      const totalSize = fileList.reduce((acc, f) => acc + f.size, 0);
+      // System-wide document stats (across all users), from the backend.
+      const ds: DocumentStats = statsRes.documentStats ?? { total_documents: 0, total_bytes: 0, by_type: {} };
+      setDocStats(ds);
 
-      setFiles(fileList);
       setStats({
         totalUsers: userCount ?? 0,
-        totalDocs: fileList.length,
-        totalSize: formatBytes(totalSize),
+        totalDocs: ds.total_documents,
+        totalSize: formatBytes(ds.total_bytes),
         totalConversations: convCount ?? 0,
       });
 
@@ -395,7 +389,8 @@ export default function AdminPage() {
     return ((recent - prior) / prior) * 100;
   })();
 
-  const donutData = buildDonutSlices(files);
+  const donutData = buildDonutSlices(docStats.by_type);
+  const totalFiles = docStats.total_documents;
 
   return (
     <div style={{ display: "flex", flex: 1, flexDirection: "column", alignSelf: "stretch", overflow: "auto", minWidth: 0 }}>
@@ -445,12 +440,12 @@ export default function AdminPage() {
             <Card style={{ height: "100%" }}>
               <CardHeader title="Uploads by Type" />
               <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px" }}>
-                <DonutChart files={files} />
+                <DonutChart byType={docStats.by_type} />
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {donutData.length === 0 ? (
                     <span style={{ fontSize: 11, fontFamily: MONO, color: C.whisper }}>No files yet</span>
                   ) : donutData.map((d) => {
-                    const pct = files.length > 0 ? Math.round((d.value / files.length) * 100) : 0;
+                    const pct = totalFiles > 0 ? Math.round((d.value / totalFiles) * 100) : 0;
                     return (
                       <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: d.color, flexShrink: 0 }} />

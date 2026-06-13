@@ -88,6 +88,66 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- ─── Admin dashboard analytics ───────────────────────────────────────────────
+-- Weekly time-series used by the admin dashboard chart. Each returns one row per
+-- week for the last `weeks` weeks (including weeks with zero activity, so the
+-- chart line spans the whole range). week_label is the Monday of each week as a
+-- YYYY-MM-DD date, which sorts chronologically as text. Called from the stats
+-- route with the service-role key:
+--   supabase.rpc('admin_weekly_conversations', { weeks: 8 })
+--   supabase.rpc('admin_weekly_users',         { weeks: 8 })
+-- security definer so the service role (and only it, via the route's admin check)
+-- can aggregate across all rows regardless of Row Level Security.
+
+create or replace function public.admin_weekly_conversations(weeks integer default 8)
+returns table (week_label text, count bigint)
+language sql
+security definer
+set search_path = public
+as $$
+  with series as (
+    select generate_series(
+      date_trunc('week', now()) - make_interval(weeks => greatest(weeks, 1) - 1),
+      date_trunc('week', now()),
+      interval '1 week'
+    ) as wk
+  )
+  select to_char(s.wk, 'YYYY-MM-DD') as week_label,
+         count(c.id)                as count
+  from series s
+  left join public.conversations c
+    on date_trunc('week', c.created_at) = s.wk
+  group by s.wk
+  order by s.wk;
+$$;
+
+create or replace function public.admin_weekly_users(weeks integer default 8)
+returns table (week_label text, count bigint)
+language sql
+security definer
+set search_path = public
+as $$
+  with series as (
+    select generate_series(
+      date_trunc('week', now()) - make_interval(weeks => greatest(weeks, 1) - 1),
+      date_trunc('week', now()),
+      interval '1 week'
+    ) as wk
+  )
+  select to_char(s.wk, 'YYYY-MM-DD') as week_label,
+         count(p.id)                as count
+  from series s
+  left join public.profiles p
+    on date_trunc('week', p.created_at) = s.wk
+  group by s.wk
+  order by s.wk;
+$$;
+
+-- Restrict these to the service role; the stats route already verifies the
+-- caller is an admin before invoking them with the service-role key.
+revoke all on function public.admin_weekly_conversations(integer) from public, anon, authenticated;
+revoke all on function public.admin_weekly_users(integer)         from public, anon, authenticated;
+
 -- ─── First admin ─────────────────────────────────────────────────────────────
 -- After signing up, promote your account by running (with your user id):
 --   update public.profiles set role = 'admin' where id = '<your-user-uuid>';

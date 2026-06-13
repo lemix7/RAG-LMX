@@ -1,16 +1,18 @@
-from fastapi import FastAPI, HTTPException , UploadFile, File, Depends
+from fastapi import FastAPI, HTTPException , UploadFile, File, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 
-from app.document_loader import load_documents, docs_dir_for
+from app.document_loader import load_documents, docs_dir_for, aggregate_document_stats
 from app.text_splitter import split_documents
 from app.vector_store import ingest_documents, delete_document
 from app.rag_chain import build_rag_chain, stream_ask
-from app.config import LLM_MODEL
+from app.config import LLM_MODEL, ADMIN_API_SECRET
 from app.file_registry import load_registry, remove_from_registry
 from app.voice import transcribe, synthesize
 from app.auth import get_current_user_id
+
+import secrets
 
 import json
 
@@ -36,6 +38,16 @@ app.add_middleware(
     allow_methods=["*"], # allow all http method like GET , POST
     allow_headers=["*"],
 )
+
+
+def require_admin_secret(x_admin_secret: str = Header(None)):
+    if not ADMIN_API_SECRET:
+        raise HTTPException(
+            status_code=500,
+            detail="Admin endpoints are not configured. Set ADMIN_API_SECRET in .env.",
+        )
+    if not x_admin_secret or not secrets.compare_digest(x_admin_secret, ADMIN_API_SECRET):
+        raise HTTPException(status_code=403, detail="Forbidden.")
 
 
 class QuestionRequest(BaseModel):
@@ -174,3 +186,9 @@ def list_files(user_id: str = Depends(get_current_user_id)):
                 "size": f.stat().st_size,
             })
     return {"files": sorted(files, key=lambda x: x["name"])}
+
+
+# System-wide document stats across all users. Admin-only (shared secret).
+@app.get("/admin/document-stats", dependencies=[Depends(require_admin_secret)])
+def admin_document_stats():
+    return aggregate_document_stats()
