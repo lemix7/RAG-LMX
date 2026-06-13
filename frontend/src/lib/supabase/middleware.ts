@@ -42,9 +42,7 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANT: do not run code between createServerClient and getUser().
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const {data: { user }} = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
@@ -54,7 +52,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If logged in and hitting an auth page, send them to the app.
+  // If the user is logged in sends them to the app
   if (user && (pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
@@ -69,7 +67,7 @@ export async function updateSession(request: NextRequest) {
       .eq("id", user.id)
       .single();
     if (profile?.role === "admin") {
-      const url = request.nextUrl.clone();
+      const url = request.nextUrl.clone(); // clone the current url
       url.pathname = "/admin";
       return NextResponse.redirect(url);
     }

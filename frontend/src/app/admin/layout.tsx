@@ -17,11 +17,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [loading, profile, router]);
 
-  // Block render until we know the role, and for non-admins (mid-redirect).
-  if (loading || !profile || profile.role !== "admin") {
+  // Show nothing while the profile is still loading.
+  if (loading) return null;
+
+  // Once loaded, block non-admins (redirect already fired via useEffect).
+  if (!profile || profile.role !== "admin") {
     return (
       <div style={{ display: "flex", height: "100%", width: "100%", alignItems: "center", justifyContent: "center", background: "#0c0c0b", color: "#7d8187", fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 14 }}>
-        {loading ? "Loading…" : "Redirecting…"}
+        Redirecting…
       </div>
     );
   }

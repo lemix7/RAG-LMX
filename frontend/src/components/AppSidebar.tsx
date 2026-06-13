@@ -261,12 +261,12 @@ export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSide
               </NavSection>
             </div>
 
-            <div style={{ marginTop: 8 }}>
+            {/* <div style={{ marginTop: 8 }}>
               <NavSection label="Analytics">
                 <NavItem icon={<FeatherBarChart2 style={{ width: 15, height: 15 }} />} label="Usage" index={3} />
                 <NavItem icon={<FeatherActivity style={{ width: 15, height: 15 }} />} label="Performance" index={4} />
               </NavSection>
-            </div>
+            </div> */}
           </>
         ) : (
           <>
