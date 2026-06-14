@@ -20,6 +20,7 @@ interface DocData {
   type: string;
   size: number;
   ingested: boolean;
+  user_id?: string;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -58,7 +59,7 @@ export default function DocumentsPage() {
   const [focused, setFocused] = useState(false);
 
   async function loadDocs() {
-    const res = await fetch("/api/files", { cache: "no-store" }).catch(() => null);
+    const res = await fetch("/api/admin/files", { cache: "no-store" }).catch(() => null);
     if (!res?.ok) { setLoading(false); return; }
     const json = await res.json();
     setDocs(json.files ?? []);
@@ -67,9 +68,12 @@ export default function DocumentsPage() {
 
   useEffect(() => { loadDocs(); }, []);
 
-  async function handleDelete(name: string) {
-    await fetch(`/api/files/${encodeURIComponent(name)}`, { method: "DELETE" });
-    setDocs((prev) => prev.filter((d) => d.name !== name));
+  async function handleDelete(doc: DocData) {
+    const url = doc.user_id
+      ? `/api/admin/files/${encodeURIComponent(doc.user_id)}/${encodeURIComponent(doc.name)}`
+      : `/api/files/${encodeURIComponent(doc.name)}`;
+    await fetch(url, { method: "DELETE" });
+    setDocs((prev) => prev.filter((d) => !(d.name === doc.name && d.user_id === doc.user_id)));
   }
 
   const filtered = docs.filter((d) => {
@@ -185,7 +189,7 @@ export default function DocumentsPage() {
                 {filtered.map((doc) => {
                   const ext = getExt(doc.name);
                   return (
-                    <Table.Row key={doc.name}>
+                    <Table.Row key={`${doc.user_id ?? ""}:${doc.name}`}>
                       <Table.Cell>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <FeatherFileText style={{ width: 14, height: 14, color: TYPE_COLORS[ext] ?? "#474747", flexShrink: 0 }} />
@@ -202,7 +206,7 @@ export default function DocumentsPage() {
                       <Table.Cell>
                         <div style={{ display: "flex", justifyContent: "flex-end" }}>
                           <button
-                            onClick={() => handleDelete(doc.name)}
+                            onClick={() => handleDelete(doc)}
                             style={{ background: "none", border: "none", color: "#474747", cursor: "pointer", padding: 4, display: "inline-flex", alignItems: "center", borderRadius: 4, transition: "color 0.15s" }}
                             onMouseEnter={(e) => (e.currentTarget.style.color = "#f05070")}
                             onMouseLeave={(e) => (e.currentTarget.style.color = "#474747")}
