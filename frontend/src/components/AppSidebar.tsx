@@ -297,7 +297,7 @@ export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSide
             ref={upload.fileInputRef}
             type="file"
             multiple
-            accept=".pdf,.docx,.doc,.txt,.md,.csv"
+            accept=".pdf,.docx,.doc,.txt,.md"
             style={{ display: "none" }}
             onChange={(e) => {
               if (e.target.files) upload.onUploadFiles(e.target.files);
@@ -351,7 +351,7 @@ export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSide
                     Drop files or click to browse
                   </span>
                   <span style={{ fontSize: 11, fontFamily: MONO, letterSpacing: "0.06em", color: "#a0a4ab", textAlign: "center" }}>
-                    PDF · TXT · MD · CSV
+                    PDF · DOC · TXT · MD 
                   </span>
                 </div>
               </>

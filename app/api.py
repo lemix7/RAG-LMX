@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException , UploadFile, File, Depends, Header
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
@@ -19,10 +19,12 @@ import json
 
 _chains: dict[str, tuple] = {}
 
+
 def get_chain_and_retriever(user_id: str):
     if user_id not in _chains:
         _chains[user_id] = build_rag_chain(user_id)
     return _chains[user_id]
+
 
 def invalidate_chain(user_id: str):
     _chains.pop(user_id, None)
@@ -55,6 +57,7 @@ class QuestionRequest(BaseModel):
 
 class TTSRequest(BaseModel):
     text: str
+
 
 @app.get("/health")
 def health():
@@ -109,14 +112,14 @@ def ingest(user_id: str = Depends(get_current_user_id)):
 @app.post("/chat")
 def chat(body: QuestionRequest, user_id: str = Depends(get_current_user_id)):
     if not body.question.strip():
-        raise HTTPException(status_code=400, detail="Question cannot be empty.")
+        raise HTTPException(
+            status_code=400, detail="Question cannot be empty.")
 
     try:
         _chain, _retriever, _llm = get_chain_and_retriever(user_id)
         result = stream_ask(body.question, _chain, _retriever, _llm)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
     sources = []
 
@@ -128,8 +131,8 @@ def chat(body: QuestionRequest, user_id: str = Depends(get_current_user_id)):
             "page": page,
         })
 
-
     # streaming works via fetch; the FastAPI docs /chat endpoint won't show streamed output
+
     def token_generator():
         for chunk in result["stream"]:
             yield chunk
@@ -166,10 +169,11 @@ def tts(body: TTSRequest, user_id: str = Depends(get_current_user_id)):
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...), user_id: str = Depends(get_current_user_id)):
-    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+    allowed = {".txt", ".pdf", ".docx", ".doc", ".md"}
     suffix = "." + file.filename.split(".")[-1].lower()
     if suffix not in allowed:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {suffix}")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported file type: {suffix}")
 
     dest = docs_dir_for(user_id) / file.filename
     content = await file.read()
@@ -181,7 +185,8 @@ async def upload(file: UploadFile = File(...), user_id: str = Depends(get_curren
 def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
     file_path = docs_dir_for(user_id) / file_name
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
+        raise HTTPException(
+            status_code=404, detail=f"File not found: {file_name}")
     try:
         chunks_removed = delete_document(user_id, file_name)
         remove_from_registry(user_id, file_name)
@@ -194,7 +199,7 @@ def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
 
 @app.get("/files")
 def list_files(user_id: str = Depends(get_current_user_id)):
-    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", }
     registry = load_registry(user_id)
     files = []
     for f in docs_dir_for(user_id).iterdir():
@@ -217,7 +222,8 @@ def admin_delete_file(user_id: str, file_name: str):
     """Delete a specific file for a specific user (admin only)."""
     file_path = docs_dir_for(user_id) / file_name
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
+        raise HTTPException(
+            status_code=404, detail=f"File not found: {file_name}")
     try:
         chunks_removed = delete_document(user_id, file_name)
         remove_from_registry(user_id, file_name)
@@ -232,7 +238,7 @@ def admin_delete_file(user_id: str, file_name: str):
 def admin_list_files():
     """Return all files across all users for the admin documents page."""
     from app.config import DOCS_DIR
-    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+    allowed = {".txt", ".pdf", ".docx", ".doc", ".md"}
     files = []
     if DOCS_DIR.exists():
         for user_dir in DOCS_DIR.iterdir():

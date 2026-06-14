@@ -3,7 +3,6 @@ from langchain_community.document_loaders import (
     PyPDFLoader,
     Docx2txtLoader,
     TextLoader,
-    CSVLoader
 )
 from pathlib import Path
 
@@ -18,7 +17,7 @@ def docs_dir_for(user_id: str) -> Path:
 
 
 # Supported document extensions, shared by the loaders below and the admin stats.
-ALLOWED_EXTENSIONS = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+ALLOWED_EXTENSIONS = {".txt", ".pdf", ".docx", ".doc", ".md"}
 
 
 def aggregate_document_stats() -> dict:
@@ -61,7 +60,6 @@ def load_documents(user_id: str, directory: Path | None = None) -> list[Document
         ".doc": Docx2txtLoader,
         ".txt": TextLoader,
         ".md": TextLoader,
-        ".csv": CSVLoader,
     } 
 
     #  folder doesn't exist
