@@ -43,6 +43,7 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
       <span className="text-caption-bold font-caption-bold text-subtext-color mb-1" style={{ fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 11, letterSpacing: "0.08em", color: "#fff",  }}>
         Knowledge Source ({files.length}) 
       </span>
+      <div className="flex w-full flex-col gap-1 overflow-y-auto" style={{ maxHeight: "calc(3.5 * (44px + 4px))" }}>
       <AnimatePresence initial={false}>
       {files.map((file, i) => (
         <motion.div
@@ -84,6 +85,7 @@ export function SidebarFileList({ files, onDelete }: SidebarFileListProps) {
         </motion.div>
       ))}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
