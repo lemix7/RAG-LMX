@@ -17,15 +17,14 @@ import secrets
 import json
 
 
-# this dict will include the user and their generated chain 
 _chains: dict[str, tuple] = {}
 
 def get_chain_and_retriever(user_id: str):
-    if user_id not in _chains: # if the user does not exist create a chain
+    if user_id not in _chains:
         _chains[user_id] = build_rag_chain(user_id)
     return _chains[user_id]
 
-def invalidate_chain(user_id: str): # called when the user's vector store is changed
+def invalidate_chain(user_id: str):
     _chains.pop(user_id, None)
 
 
@@ -34,8 +33,8 @@ app = FastAPI(title="RAG-LMX")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
-    allow_credentials=True, # allow cookies and auth headers
-    allow_methods=["*"], # allow all http method like GET , POST
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -109,9 +108,10 @@ def chat(body: QuestionRequest, user_id: str = Depends(get_current_user_id)):
         })
 
 
-    def token_generator(): # Streams the answer in the frontend
+    # streaming works via fetch; the FastAPI docs /chat endpoint won't show streamed output
+    def token_generator():
         for chunk in result["stream"]:
-            yield chunk # returns each token individually
+            yield chunk
         yield f"\n\n__sources__:{json.dumps(sources)}"
 
     return StreamingResponse(token_generator(), media_type="text/plain")
@@ -134,7 +134,7 @@ def tts(body: TTSRequest, user_id: str = Depends(get_current_user_id)):
     if not body.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty.")
     try:
-        audio = synthesize(body.text) # convert text into spoken speech
+        audio = synthesize(body.text)
     except RuntimeError as e:
         # Missing key or upstream failure — 503 so the client can degrade gracefully.
         raise HTTPException(status_code=503, detail=str(e))
@@ -143,7 +143,6 @@ def tts(body: TTSRequest, user_id: str = Depends(get_current_user_id)):
     return Response(content=audio, media_type="audio/mpeg")
 
 
-# saves files to the user's docs folder
 @app.post("/upload")
 async def upload(file: UploadFile = File(...), user_id: str = Depends(get_current_user_id)):
     allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
@@ -164,15 +163,14 @@ def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
         raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
     try:
         chunks_removed = delete_document(user_id, file_name)
-        remove_from_registry(user_id, file_name) # removes the hashing of the document
+        remove_from_registry(user_id, file_name)
         file_path.unlink()
-        invalidate_chain(user_id) # drops the user's cached chain & retriever
+        invalidate_chain(user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"Deleted '{file_name}' ({chunks_removed} chunks removed)"}
 
 
-# list the user's ingested files
 @app.get("/files")
 def list_files(user_id: str = Depends(get_current_user_id)):
     allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
@@ -188,7 +186,6 @@ def list_files(user_id: str = Depends(get_current_user_id)):
     return {"files": sorted(files, key=lambda x: x["name"])}
 
 
-# System-wide document stats across all users. Admin-only (shared secret).
 @app.get("/admin/document-stats", dependencies=[Depends(require_admin_secret)])
 def admin_document_stats():
     return aggregate_document_stats()

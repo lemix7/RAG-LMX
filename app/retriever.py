@@ -19,35 +19,21 @@ from .config import (
 )
 from .vector_store import get_vector_store
 
-# This class overrides the methods of langchain original corss encoder reranker since it does not have the ability of dropping the doc under certain condtions 
 class ThresholdReranker(CrossEncoderReranker):
+    # CrossEncoderReranker with a minimum score cutoff.
    
     score_threshold: float = 0.0
 
     def compress_documents(self, documents: Sequence[Document], query: str, callbacks: Callbacks | None = None) -> Sequence[Document]:
 
-        scores = self.model.score([(query, doc.page_content)  # Score every chunk against the question
-                                  for doc in documents])
-
-        # pair each chunk with it relevance score
+        scores = self.model.score([(query, doc.page_content) for doc in documents])
         docs_with_scores = list(zip(documents, scores, strict=False))
-
-        result = sorted(docs_with_scores,
-                        # sort chunks by the highest score
-                        key=operator.itemgetter(1), reverse=True)
-
-        final_docs = []
-
-        for doc, score in result[:self.top_n]: # create a list copy of the top N docs and loop them
-            if score >= self.score_threshold:
-                final_docs.append(doc) # insert only the docs that are above the threshold score
-
-        return final_docs
+        result = sorted(docs_with_scores, key=operator.itemgetter(1), reverse=True)
+        return [doc for doc, score in result[:self.top_n] if score >= self.score_threshold]
 
 
 def _fetch_all_documents_from_chroma(user_id: str) -> list[Document]:
-    # return a list of the user's chunks in raw text alongside their metadata for conducting the keyword search (BM25).
-    # Reading only the user's collection means the BM25 index is automatically scoped to that user.
+    # Pulls all chunks from the user's ChromaDB collection to build the in-memory BM25 index.
 
     vector_store = get_vector_store(user_id)
     result = vector_store.get(include=["documents", "metadatas"])
@@ -103,7 +89,7 @@ def get_retriever(user_id: str, k: int = RETRIEVER_K):
 
     # Reranker
     cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
-    reranker = ThresholdReranker( # This is the object of the class that overrides the original langchain class
+    reranker = ThresholdReranker(
         model=cross_encoder,
         top_n=RERANKER_TOP_N,
         score_threshold=RERANKER_SCORE_THRESHOLD,

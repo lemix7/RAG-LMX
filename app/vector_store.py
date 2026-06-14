@@ -21,7 +21,7 @@ def collection_name_for(user_id: str) -> str:
 
 
 def get_embeddings() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30) # Return openAI embedding client
+    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30) # Return openAI ebedding client
 
 def get_vector_store(user_id: str) -> Chroma:
     return Chroma(
@@ -45,13 +45,13 @@ def delete_document(user_id: str, file_name: str) -> int:
 
     collection = get_vector_store(user_id)._collection
     all_results = collection.get(include=["metadatas"])
-    ids_to_delete = [ # Pair chunks ID's with their metadata
+    ids_to_delete = [ # pair chunks ID's with their metadata
         doc_id
         for doc_id, meta in zip(all_results["ids"], all_results["metadatas"])
         if Path(meta.get("source", "")).name == file_name
     ]
     if ids_to_delete:
-        collection.delete(ids=ids_to_delete) # loop through the IDs and their metadata and deletes them
+        collection.delete(ids=ids_to_delete) # loop throuh the IDs and their metadata and deletes them
     return len(ids_to_delete)
 
 

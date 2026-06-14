@@ -47,19 +47,14 @@ CHUNK_OVERLAP = 300
 COLLECTION_NAME = "rag_documents"
 RETRIEVER_K = 5  # Number of junks retrived from the vector DB
 
-# --- Hybrid RAG settings ---
+# Hybrid retrieval
+ENSEMBLE_K = 10  # candidates pulled from each retriever before reranking
 
-# Number of retrived chunks from the vector store and the BM25 retriever (COMBINED)
-ENSEMBLE_K = 10
-
-# This weight determines the importance of the vector retriever compared to the BM25 retriever on the final retriever
-VECTOR_WEIGHT = 0.6
+VECTOR_WEIGHT = 0.6  # vector vs BM25 blend
 BM25_WEIGHT = 0.4
 
-# Local cross encoder model for reranking
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 RERANKER_TOP_N = 8  # how many chunks survive reranking into the LLM context
 
-# Minimum reranker score to include a chunk as a source.
-# Chunks scoring below this are dropped even if they're in the top k.
+# chunks below this score are dropped before returning results
 RERANKER_SCORE_THRESHOLD = 0.0

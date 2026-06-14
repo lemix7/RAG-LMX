@@ -19,7 +19,7 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
   title: "RAG-LMX",
-  description: "Chat with your documents using AI",
+  description: "Upload documents and ask questions about them.",
 };
 
 export default function RootLayout({
