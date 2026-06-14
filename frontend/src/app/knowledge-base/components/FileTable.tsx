@@ -28,7 +28,7 @@ export function FileTable({ files, filtered, pageFiles, onDelete, onClearFilters
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ fontSize: 16, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>No files yet</span>
           <span style={{ fontSize: 14, fontFamily: FONT, letterSpacing: "-0.025em", lineHeight: 1.43, color: "#7d8187", maxWidth: 280 }}>
-            Upload PDF, DOCX, TXT, CSV, or MD files to build your knowledge base.
+            Upload PDF, DOCX, TXT, or MD files to build your knowledge base.
           </span>
         </div>
         <button

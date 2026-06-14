@@ -98,7 +98,7 @@ export function KnowledgeBaseHeader({
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".pdf,.docx,.doc,.txt,.md,.csv"
+          accept=".pdf,.docx,.doc,.txt,.md"
           style={{ display: "none" }}
           onChange={(e) => {
             if (e.target.files) onUploadFiles(e.target.files);
