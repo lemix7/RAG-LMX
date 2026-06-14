@@ -61,6 +61,27 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/debug/retrieve")
+def debug_retrieve(q: str, user_id: str = Depends(get_current_user_id)):
+    """Returns the raw chunks the retriever finds for a query — for debugging only."""
+    _, retriever, _ = get_chain_and_retriever(user_id)
+    docs = retriever.invoke(q)
+    return {
+        "query": q,
+        "num_chunks": len(docs),
+        "chunks": [
+            {
+                "index": i,
+                "score": doc.metadata.get("relevance_score"),
+                "source": doc.metadata.get("source", "unknown"),
+                "page": doc.metadata.get("page"),
+                "content": doc.page_content[:300],
+            }
+            for i, doc in enumerate(docs)
+        ],
+    }
+
+
 @app.get("/model")
 def get_model():
     return {"model": LLM_MODEL}
@@ -91,8 +112,8 @@ def chat(body: QuestionRequest, user_id: str = Depends(get_current_user_id)):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     try:
-        _chain, _retriever = get_chain_and_retriever(user_id)
-        result = stream_ask(body.question, _chain, _retriever)
+        _chain, _retriever, _llm = get_chain_and_retriever(user_id)
+        result = stream_ask(body.question, _chain, _retriever, _llm)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -189,3 +210,42 @@ def list_files(user_id: str = Depends(get_current_user_id)):
 @app.get("/admin/document-stats", dependencies=[Depends(require_admin_secret)])
 def admin_document_stats():
     return aggregate_document_stats()
+
+
+@app.delete("/admin/files/{user_id}/{file_name}", dependencies=[Depends(require_admin_secret)])
+def admin_delete_file(user_id: str, file_name: str):
+    """Delete a specific file for a specific user (admin only)."""
+    file_path = docs_dir_for(user_id) / file_name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {file_name}")
+    try:
+        chunks_removed = delete_document(user_id, file_name)
+        remove_from_registry(user_id, file_name)
+        file_path.unlink()
+        invalidate_chain(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"message": f"Deleted '{file_name}' ({chunks_removed} chunks removed)"}
+
+
+@app.get("/admin/files", dependencies=[Depends(require_admin_secret)])
+def admin_list_files():
+    """Return all files across all users for the admin documents page."""
+    from app.config import DOCS_DIR
+    allowed = {".txt", ".pdf", ".docx", ".doc", ".md", ".csv"}
+    files = []
+    if DOCS_DIR.exists():
+        for user_dir in DOCS_DIR.iterdir():
+            if not user_dir.is_dir():
+                continue
+            user_id = user_dir.name
+            registry = load_registry(user_id)
+            for f in user_dir.iterdir():
+                if f.is_file() and f.suffix.lower() in allowed:
+                    files.append({
+                        "name": f.name,
+                        "ingested": f.name in registry,
+                        "size": f.stat().st_size,
+                        "user_id": user_id,
+                    })
+    return {"files": sorted(files, key=lambda x: (x["user_id"], x["name"]))}
