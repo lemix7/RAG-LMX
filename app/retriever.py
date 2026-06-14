@@ -66,8 +66,8 @@ def get_retriever(user_id: str, k: int = RETRIEVER_K):
     vector_store = get_vector_store(user_id)
 
     vector_retriever = vector_store.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": ENSEMBLE_K},
+        search_type="mmr",
+        search_kwargs={"k": ENSEMBLE_K, "fetch_k": ENSEMBLE_K * 3, "lambda_mult": 0.5},
     )
 
     all_docs = _fetch_all_documents_from_chroma(user_id)
@@ -87,11 +87,11 @@ def get_retriever(user_id: str, k: int = RETRIEVER_K):
         weights=[VECTOR_WEIGHT, BM25_WEIGHT],
     )
 
-    # Reranker
+    # Reranker — top_n uses RERANKER_TOP_N as a pre-filter ceiling, then k limits final output
     cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
     reranker = ThresholdReranker(
         model=cross_encoder,
-        top_n=RERANKER_TOP_N,
+        top_n=min(RERANKER_TOP_N, k),
         score_threshold=RERANKER_SCORE_THRESHOLD,
     )
 
@@ -101,5 +101,5 @@ def get_retriever(user_id: str, k: int = RETRIEVER_K):
     )
 
     print(
-        f"Hybrid retriever ready: vector(k={ENSEMBLE_K}) + BM25(k={ENSEMBLE_K}) → rerank → top {k}")
+        f"Hybrid retriever ready: vector(k={ENSEMBLE_K}) + BM25(k={ENSEMBLE_K}) → rerank → top {min(RERANKER_TOP_N, k)}")
     return hybrid_retriever
