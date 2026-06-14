@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import type { Message, Source, Conversation } from "./types";
+import type { Message, Source, Conversation, ModelMode } from "./types";
 import { sendChat } from "./api";
 import { parseStream } from "./parseStream";
 import {
@@ -19,7 +19,7 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export function useChat() {
+export function useChat(mode: ModelMode = "public") {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -119,7 +119,7 @@ export function useChat() {
       saveMessage(convId, "user", trimmed).catch(() => {});
 
       try {
-        const response = await sendChat(trimmed);
+        const response = await sendChat(trimmed, mode);
 
         if (!response.ok) {
           const errData = await response
@@ -182,7 +182,7 @@ export function useChat() {
         setIsStreaming(false);
       }
     },
-    [isStreaming, activeConversationId]
+    [isStreaming, activeConversationId, mode]
   );
 
   return {

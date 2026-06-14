@@ -40,6 +40,12 @@ WHISPER_MODEL = "whisper-1"  # converts spoken voice into text
 EMBEDDING_MODEL = "text-embedding-3-small"
 LLM_MODEL = "gpt-4o-mini"
 
+# Local (private) models, served by Ollama at OLLAMA_BASE_URL. Used when the
+# user switches the chat to "local" mode so documents never leave the machine.
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")  # editor LLM
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+
 
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 300

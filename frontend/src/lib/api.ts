@@ -1,15 +1,16 @@
-import type { FilesResponse, IngestResponse, UploadResponse } from "./types";
+import type { FilesResponse, IngestResponse, UploadResponse, ModelInfo, ModelMode } from "./types";
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 /**
  * Returns the raw Response so the caller can stream it.
+ * `mode` selects the public (OpenAI) or local (Ollama) editor model.
  */
-export async function sendChat(question: string): Promise<Response> {
+export async function sendChat(question: string, mode: ModelMode = "public"): Promise<Response> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, mode }),
   });
   return response;
 }
@@ -72,8 +73,12 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
 
 // ─── Ingest ───────────────────────────────────────────────────────────────────
 
-export async function triggerIngest(): Promise<IngestResponse> {
-  const response = await fetch("/api/ingest", { method: "POST" });
+export async function triggerIngest(mode: ModelMode = "public"): Promise<IngestResponse> {
+  const response = await fetch("/api/ingest", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode }),
+  });
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.detail ?? "Ingest failed");
@@ -83,8 +88,8 @@ export async function triggerIngest(): Promise<IngestResponse> {
 
 // ─── Files ────────────────────────────────────────────────────────────────────
 
-export async function getFiles(): Promise<FilesResponse> {
-  const response = await fetch("/api/files", { cache: "no-store" }); // the chache is disabled
+export async function getFiles(mode: ModelMode = "public"): Promise<FilesResponse> {
+  const response = await fetch(`/api/files?mode=${mode}`, { cache: "no-store" }); // the chache is disabled
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.detail ?? "Failed to load files");
@@ -92,11 +97,11 @@ export async function getFiles(): Promise<FilesResponse> {
   return data as FilesResponse;
 }
 
-export async function getModel(): Promise<string> {
+export async function getModel(): Promise<ModelInfo> {
   const response = await fetch("/api/model", { cache: "no-store" });
   const data = await response.json();
   if (!response.ok) throw new Error(data.detail ?? "Failed to fetch model");
-  return data.model as string;
+  return { public: data.public, local: data.local } as ModelInfo;
 }
 
 export async function deleteFile(fileName: string): Promise<void> {

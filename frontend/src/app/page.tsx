@@ -3,12 +3,14 @@
 import { useRef, useState } from "react";
 import { useChat } from "@/lib/useChat";
 import { useFiles } from "@/lib/useFiles";
+import { useModelMode } from "@/lib/useModelMode";
 import { MessageList } from "@/components/MessageList";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatTopBar } from "@/components/chat/ChatTopBar";
 import { ChatInput } from "@/components/chat/ChatInput";
 
 export default function Home() {
+  const { mode, toggleMode } = useModelMode();
   const {
     conversations,
     activeConversationId,
@@ -19,8 +21,8 @@ export default function Home() {
     newChat,
     renameConversation,
     deleteConversation,
-  } = useChat();
-  const { files, isUploading, isIngesting, error, uploadFiles, deleteFile } = useFiles();
+  } = useChat(mode);
+  const { files, isUploading, isIngesting, error, uploadFiles, deleteFile } = useFiles(mode);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -74,7 +76,7 @@ export default function Home() {
 
       {/* Main content */}
       <div style={{ display: "flex", flex: 1, flexDirection: "column", alignSelf: "stretch", overflow: "hidden", minWidth: 0 }}>
-        <ChatTopBar onMenuClick={() => setSidebarOpen(true)} />
+        <ChatTopBar onMenuClick={() => setSidebarOpen(true)} mode={mode} onToggleMode={toggleMode} />
 
         <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
           <MessageList messages={messages} />

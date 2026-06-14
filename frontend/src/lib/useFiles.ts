@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import type { FileInfo } from "./types";
+import type { FileInfo, ModelMode } from "./types";
 import { uploadFile, triggerIngest, getFiles, deleteFile as apiDeleteFile } from "./api";
 
-export function useFiles() {
+export function useFiles(mode: ModelMode = "public") {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isIngesting, setIsIngesting] = useState(false);
@@ -13,7 +13,7 @@ export function useFiles() {
 
   const refreshFiles = useCallback(async () => {
     try {
-      const data = await getFiles();
+      const data = await getFiles(mode);
       setFiles(
         data.files.map((f) => ({
           name: f.name,
@@ -25,9 +25,9 @@ export function useFiles() {
     } catch {
       // Silently fail on refresh — backend may not be running yet
     }
-  }, []);
+  }, [mode]);
 
-  // Load files on mount
+  // Load files on mount and whenever the mode changes (ingested flag is per-mode).
   useEffect(() => {
     refreshFiles();
   }, [refreshFiles]);
@@ -96,7 +96,7 @@ export function useFiles() {
         );
 
         try {
-          const result = await triggerIngest();
+          const result = await triggerIngest(mode);
           setIngestMessage(result.message);
           await refreshFiles();
         } catch (err) {
@@ -113,7 +113,7 @@ export function useFiles() {
         }
       }
     },
-    [refreshFiles]
+    [refreshFiles, mode]
   );
 
   const deleteFile = useCallback(

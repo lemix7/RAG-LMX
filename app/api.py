@@ -7,7 +7,7 @@ from app.document_loader import load_documents, docs_dir_for, aggregate_document
 from app.text_splitter import split_documents
 from app.vector_store import ingest_documents, delete_document
 from app.rag_chain import build_rag_chain, stream_ask
-from app.config import LLM_MODEL, ADMIN_API_SECRET
+from app.config import LLM_MODEL, OLLAMA_MODEL, ADMIN_API_SECRET
 from app.file_registry import load_registry, remove_from_registry
 from app.voice import transcribe, synthesize
 from app.auth import get_current_user_id
@@ -17,17 +17,29 @@ import secrets
 import json
 
 
-_chains: dict[str, tuple] = {}
+# Chains are cached per (user_id, mode): "public" (OpenAI) and "local" (Ollama)
+# use different embeddings and collections, so each needs its own chain.
+_chains: dict[tuple[str, str], tuple] = {}
+
+VALID_MODES = ("public", "local")
 
 
-def get_chain_and_retriever(user_id: str):
-    if user_id not in _chains:
-        _chains[user_id] = build_rag_chain(user_id)
-    return _chains[user_id]
+def normalize_mode(mode: str | None) -> str:
+    """Coerces an incoming mode to a known value, defaulting to 'public'."""
+    return mode if mode in VALID_MODES else "public"
+
+
+def get_chain_and_retriever(user_id: str, mode: str = "public"):
+    key = (user_id, mode)
+    if key not in _chains:
+        _chains[key] = build_rag_chain(user_id, mode)
+    return _chains[key]
 
 
 def invalidate_chain(user_id: str):
-    _chains.pop(user_id, None)
+    # Drop every cached mode for this user so the next request rebuilds.
+    for key in [k for k in _chains if k[0] == user_id]:
+        _chains.pop(key, None)
 
 
 app = FastAPI(title="RAG-LMX")
@@ -53,6 +65,11 @@ def require_admin_secret(x_admin_secret: str = Header(None)):
 
 class QuestionRequest(BaseModel):
     question: str
+    mode: str = "public"
+
+
+class IngestRequest(BaseModel):
+    mode: str = "public"
 
 
 class TTSRequest(BaseModel):
@@ -87,7 +104,8 @@ def debug_retrieve(q: str, user_id: str = Depends(get_current_user_id)):
 
 @app.get("/model")
 def get_model():
-    return {"model": LLM_MODEL}
+    # Both editor models the UI can toggle between; "model" kept for back-compat.
+    return {"model": LLM_MODEL, "public": LLM_MODEL, "local": OLLAMA_MODEL}
 
 
 @app.get('/')
@@ -96,13 +114,14 @@ def home():
 
 
 @app.post("/ingest")
-def ingest(user_id: str = Depends(get_current_user_id)):
+def ingest(body: IngestRequest = IngestRequest(), user_id: str = Depends(get_current_user_id)):
+    mode = normalize_mode(body.mode)
     try:
-        documents = load_documents(user_id)
+        documents = load_documents(user_id, mode=mode)
         if not documents:
             return {"message": "No new documents to ingest."}
         chunks = split_documents(documents)
-        ingest_documents(user_id, chunks)
+        ingest_documents(user_id, chunks, mode)
         invalidate_chain(user_id)
         return {"message": f"Ingested {len(chunks)} chunks from {len(documents)} documents."}
     except Exception as e:
@@ -115,8 +134,9 @@ def chat(body: QuestionRequest, user_id: str = Depends(get_current_user_id)):
         raise HTTPException(
             status_code=400, detail="Question cannot be empty.")
 
+    mode = normalize_mode(body.mode)
     try:
-        _chain, _retriever, _llm = get_chain_and_retriever(user_id)
+        _chain, _retriever, _llm = get_chain_and_retriever(user_id, mode)
         result = stream_ask(body.question, _chain, _retriever, _llm)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -181,6 +201,19 @@ async def upload(file: UploadFile = File(...), user_id: str = Depends(get_curren
     return {"message": f"Uploaded {file.filename}. Run /ingest to process it."}
 
 
+def _delete_file_all_modes(user_id: str, file_name: str) -> int:
+    """Removes a file's chunks + registry entries from every mode's collection.
+
+    The file is being removed from disk, so it must not linger in either the
+    public or local vector store. Returns the total chunks removed.
+    """
+    chunks_removed = 0
+    for mode in VALID_MODES:
+        chunks_removed += delete_document(user_id, file_name, mode)
+        remove_from_registry(user_id, file_name, mode)
+    return chunks_removed
+
+
 @app.delete("/files/{file_name}")
 def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
     file_path = docs_dir_for(user_id) / file_name
@@ -188,8 +221,7 @@ def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
         raise HTTPException(
             status_code=404, detail=f"File not found: {file_name}")
     try:
-        chunks_removed = delete_document(user_id, file_name)
-        remove_from_registry(user_id, file_name)
+        chunks_removed = _delete_file_all_modes(user_id, file_name)
         file_path.unlink()
         invalidate_chain(user_id)
     except Exception as e:
@@ -198,9 +230,12 @@ def delete_file(file_name: str, user_id: str = Depends(get_current_user_id)):
 
 
 @app.get("/files")
-def list_files(user_id: str = Depends(get_current_user_id)):
+def list_files(mode: str = "public", user_id: str = Depends(get_current_user_id)):
+    # "ingested" is per-mode: a file embedded for public mode is not present in
+    # the local collection until re-ingested there, so read the mode's registry.
+    mode = normalize_mode(mode)
     allowed = {".txt", ".pdf", ".docx", ".doc", ".md", }
-    registry = load_registry(user_id)
+    registry = load_registry(user_id, mode)
     files = []
     for f in docs_dir_for(user_id).iterdir():
         if f.is_file() and f.suffix.lower() in allowed:
@@ -225,8 +260,7 @@ def admin_delete_file(user_id: str, file_name: str):
         raise HTTPException(
             status_code=404, detail=f"File not found: {file_name}")
     try:
-        chunks_removed = delete_document(user_id, file_name)
-        remove_from_registry(user_id, file_name)
+        chunks_removed = _delete_file_all_modes(user_id, file_name)
         file_path.unlink()
         invalidate_chain(user_id)
     except Exception as e:

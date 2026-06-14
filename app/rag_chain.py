@@ -1,8 +1,9 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from .retriever import get_retriever
-from .config import LLM_MODEL
+from .config import LLM_MODEL, OLLAMA_MODEL, OLLAMA_BASE_URL
 
 SYSTEM_PROMPT = """You are a helpful document assistant. Your primary knowledge source is the context provided below.
 
@@ -35,9 +36,20 @@ def expand_query(question: str, llm) -> list[str]:
     lines = [l.strip().lstrip("123456789.-) ") for l in result.strip().splitlines() if l.strip()]
     return [question] + lines[:3]
 
-def build_rag_chain(user_id: str):
-    retriever = get_retriever(user_id)
-    llm = ChatOpenAI(model=LLM_MODEL, temperature=0, timeout=30, max_retries=2)
+def _make_llm(mode: str = "public"):
+    """Returns the editor LLM for the given mode.
+
+    "local" runs entirely through Ollama on the user's machine so private
+    documents never leave it; "public" uses OpenAI (the default).
+    """
+    if mode == "local":
+        return ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL, temperature=0)
+    return ChatOpenAI(model=LLM_MODEL, temperature=0, timeout=30, max_retries=2)
+
+
+def build_rag_chain(user_id: str, mode: str = "public"):
+    retriever = get_retriever(user_id, mode)
+    llm = _make_llm(mode)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),

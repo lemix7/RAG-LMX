@@ -48,7 +48,7 @@ def aggregate_document_stats() -> dict:
     }
 
 
-def load_documents(user_id: str, directory: Path | None = None) -> list[Document]:
+def load_documents(user_id: str, directory: Path | None = None, *, mode: str = "public") -> list[Document]:
     documents = []
 
     if directory is None:
@@ -80,7 +80,7 @@ def load_documents(user_id: str, directory: Path | None = None) -> list[Document
                 continue
 
             #  skip prev ingested files
-            if is_already_ingested(user_id, file_path):
+            if is_already_ingested(user_id, file_path, mode):
                 print(f"Skipping already-ingested file: {file_path.name}")
                 continue
 
@@ -88,7 +88,7 @@ def load_documents(user_id: str, directory: Path | None = None) -> list[Document
             try:
                 loader = loaders[file_path.suffix.lower()](str(file_path))
                 documents.extend(loader.load())
-                mark_as_ingested(user_id, file_path)
+                mark_as_ingested(user_id, file_path, mode)
                 print(f"Loaded {file_path.name}")
             except Exception as e:
                 print(f"Failed to load {file_path.name}: {e}")

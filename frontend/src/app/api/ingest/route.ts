@@ -1,11 +1,19 @@
 import { NextRequest } from "next/server";
 import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    // Forward the mode ({ mode: "public" | "local" }) so the backend ingests
+    // into the matching collection. Body may be absent (defaults to public).
+    const body = await request.json().catch(() => ({}));
+
     const backendResponse = await fetch(`${BACKEND_URL}/ingest`, {
       method: "POST",
-      headers: { ...(await backendAuthHeaders()) }, // forward the user's Supabase JWT so the backend scopes to them
+      headers: {
+        "Content-Type": "application/json",
+        ...(await backendAuthHeaders()), // forward the user's Supabase JWT so the backend scopes to them
+      },
+      body: JSON.stringify(body),
     });
 
     const data = await backendResponse.json().catch(() => ({ detail: "Invalid response" }));

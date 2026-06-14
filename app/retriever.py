@@ -32,10 +32,10 @@ class ThresholdReranker(CrossEncoderReranker):
         return [doc for doc, score in result[:self.top_n] if score >= self.score_threshold]
 
 
-def _fetch_all_documents_from_chroma(user_id: str) -> list[Document]:
+def _fetch_all_documents_from_chroma(user_id: str, mode: str = "public") -> list[Document]:
     # Pulls all chunks from the user's ChromaDB collection to build the in-memory BM25 index.
 
-    vector_store = get_vector_store(user_id)
+    vector_store = get_vector_store(user_id, mode)
     result = vector_store.get(include=["documents", "metadatas"])
 
     texts = result.get("documents") or []
@@ -58,19 +58,19 @@ def _fetch_all_documents_from_chroma(user_id: str) -> list[Document]:
     return documents 
 
 
-def get_retriever(user_id: str, k: int = RETRIEVER_K):
-    
+def get_retriever(user_id: str, mode: str = "public", k: int = RETRIEVER_K):
+
     if k < 1:
         raise ValueError(f"k must be at least 1, got {k}")
 
-    vector_store = get_vector_store(user_id)
+    vector_store = get_vector_store(user_id, mode)
 
     vector_retriever = vector_store.as_retriever(
         search_type="mmr",
         search_kwargs={"k": ENSEMBLE_K, "fetch_k": ENSEMBLE_K * 3, "lambda_mult": 0.5},
     )
 
-    all_docs = _fetch_all_documents_from_chroma(user_id)
+    all_docs = _fetch_all_documents_from_chroma(user_id, mode)
 
     if not all_docs:
         print("Falling back to vector-only retriever (no documents in store yet).")

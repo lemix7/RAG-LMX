@@ -66,6 +66,14 @@ export interface IngestResponse {
   message: string;
 }
 
+/** Editor model the chat uses: public = OpenAI (cloud), local = Ollama (private). */
+export type ModelMode = "public" | "local";
+
+export interface ModelInfo {
+  public: string;
+  local: string;
+}
+
 export interface UploadResponse {
   message: string;
 }

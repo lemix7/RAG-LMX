@@ -5,19 +5,31 @@ import { motion } from "motion/react";
 import {
   FeatherMessageSquare,
   FeatherMoreHorizontal,
+  FeatherLock,
+  FeatherUploadCloud,
 } from "@subframe/core";
 import { getModel } from "@/lib/api";
+import type { ModelInfo, ModelMode } from "@/lib/types";
 
 interface ChatTopBarProps {
   onMenuClick?: () => void;
+  mode?: ModelMode;
+  onToggleMode?: () => void;
 }
 
-export function ChatTopBar({ onMenuClick }: ChatTopBarProps) {
-  const [model, setModel] = useState<string>("");
+export function ChatTopBar({ onMenuClick, mode = "public", onToggleMode }: ChatTopBarProps) {
+  const [models, setModels] = useState<ModelInfo | null>(null);
 
   useEffect(() => {
-    getModel().then(setModel).catch(() => {});
+    getModel().then(setModels).catch(() => {});
   }, []);
+
+  const isLocal = mode === "local";
+  const modelLabel = models ? models[mode] : "";
+  const Icon = isLocal ? FeatherLock : FeatherUploadCloud;
+  const tooltip = isLocal
+    ? "Private mode — runs locally. Click to switch to the public (cloud) model."
+    : "Public mode — uses the cloud model. Click to switch to the private (local) model.";
 
   return (
     <div
@@ -61,23 +73,33 @@ export function ChatTopBar({ onMenuClick }: ChatTopBarProps) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {model && (
-          <motion.span
+        {modelLabel && (
+          <motion.button
+            onClick={onToggleMode}
+            title={tooltip}
+            aria-label={tooltip}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
-            fontSize: 11,
-            fontFamily: "var(--font-space-mono), ui-monospace, monospace",
-            letterSpacing: "0.08em",
-            color: "#7d8187",
-            border: "1px solid #1f2228",
-            borderRadius: 9999,
-            padding: "3px 10px",
-            background: "transparent",
-          }}>
-            {model}
-          </motion.span>
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 11,
+              fontFamily: "var(--font-space-mono), ui-monospace, monospace",
+              letterSpacing: "0.08em",
+              color: isLocal ? "#34d399" : "#7d8187",
+              border: `1px solid ${isLocal ? "#1f5c43" : "#1f2228"}`,
+              borderRadius: 9999,
+              padding: "3px 10px",
+              background: isLocal ? "rgba(52, 211, 153, 0.08)" : "transparent",
+              cursor: "pointer",
+              transition: "color 0.15s, border-color 0.15s, background 0.15s",
+            }}
+          >
+            <Icon style={{ width: 12, height: 12 }} />
+            {modelLabel}
+          </motion.button>
         )}
         <button style={{ background: "none", border: "none", color: "#ffffff", cursor: "pointer", display: "flex", alignItems: "center", padding: 4 }}>
           <FeatherMoreHorizontal style={{ width: 16, height: 16 }} />

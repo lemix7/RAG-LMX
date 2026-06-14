@@ -14,6 +14,7 @@ A multi-user Retrieval-Augmented Generation (RAG) web application. Users sign up
 - **Persistent conversations** — chat history saved to Supabase, accessible from the sidebar across sessions
 - **Hybrid retrieval** — vector search + BM25 keyword search combined and reranked by a CrossEncoder model
 - **Streaming responses** — answers stream token-by-token as they are generated
+- **Public / local model toggle** — switch the chat between the cloud model (OpenAI) and a fully local model (Ollama) from the badge in the top-right of the chat page, so private documents never leave your machine
 - **Voice input** — record a question by microphone; transcribed via Whisper
 - **Voice replies** — answers read aloud via ElevenLabs TTS
 - **Source attribution** — each answer shows which document and page it came from
@@ -119,6 +120,27 @@ All tunable parameters are in `app/config.py`:
 | `BM25_WEIGHT` | `0.4` | Weight of BM25 retriever in the ensemble |
 | `RERANKER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Local CrossEncoder for reranking |
 | `RERANKER_TOP_N` | `8` | Chunks that survive reranking into LLM context |
+
+### Local (private) mode
+
+Clicking the model badge in the top-right of the chat page toggles between
+**public** (OpenAI) and **local** (Ollama) mode. In local mode both the answer
+LLM and the document embeddings run on your machine, so nothing is sent to
+OpenAI.
+
+Because local embeddings are dimensionally incompatible with OpenAI's, local
+mode keeps its **own vector collection** — documents must be (re)ingested once
+while in local mode before they can be queried there.
+
+To use it, install [Ollama](https://ollama.com), then pull the models:
+
+```bash
+ollama pull llama3.1          # editor LLM (override with OLLAMA_MODEL)
+ollama pull nomic-embed-text  # embeddings (override with OLLAMA_EMBED_MODEL)
+```
+
+The Ollama endpoint and model names are configurable via `.env` (`OLLAMA_BASE_URL`,
+`OLLAMA_MODEL`, `OLLAMA_EMBED_MODEL`) — see `.env.example`.
 
 ## Running tests
 

@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
 import { BACKEND_URL, backendAuthHeaders } from "@/lib/backend";
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const backendResponse = await fetch(`${BACKEND_URL}/files`, {
+    // Forward the mode so the per-mode "ingested" flag is correct.
+    const mode = request.nextUrl.searchParams.get("mode") ?? "public";
+
+    const backendResponse = await fetch(`${BACKEND_URL}/files?mode=${encodeURIComponent(mode)}`, {
       method: "GET",
       cache: "no-store",
       headers: { ...(await backendAuthHeaders()) }, // forward the user's Supabase JWT so the backend scopes to them
