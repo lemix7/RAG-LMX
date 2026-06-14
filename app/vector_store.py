@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from langchain_chroma import Chroma
@@ -6,19 +7,31 @@ from langchain_openai import OpenAIEmbeddings
 
 from .config import CHROMA_DIR, COLLECTION_NAME, EMBEDDING_MODEL
 
-def get_embeddings() -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30)
 
-def get_vector_store() -> Chroma:
+def _safe_user_suffix(user_id: str) -> str:
+   # Replaces any character Chroma doesn't allow in collection names with an underscore.
+    suffix = re.sub(r"[^a-zA-Z0-9._-]", "_", str(user_id))
+    if not suffix:
+        raise ValueError(f"Invalid user_id for collection name: {user_id!r}")
+    return suffix
+
+
+def collection_name_for(user_id: str) -> str:
+    return f"{COLLECTION_NAME}_{_safe_user_suffix(user_id)}"
+
+
+def get_embeddings() -> OpenAIEmbeddings:
+    return OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=30) # Return openAI ebedding client
+
+def get_vector_store(user_id: str) -> Chroma:
     return Chroma(
-        collection_name=COLLECTION_NAME,
+        collection_name=collection_name_for(user_id),
         embedding_function=get_embeddings(),
         persist_directory=CHROMA_DIR,
     )
 
-def list_ingested_sources() -> list[str]:
-    """Returns a sorted list of unique source file basenames in the vector store."""
-    collection = get_vector_store()._collection
+def list_ingested_sources(user_id: str) -> list[str]:
+    collection = get_vector_store(user_id)._collection
     all_results = collection.get(include=["metadatas"])
     sources = {
         Path(meta.get("source", "")).name
@@ -28,42 +41,30 @@ def list_ingested_sources() -> list[str]:
     return sorted(sources)
 
 
-def delete_document(file_name: str) -> int:
-    """
-    Deletes all chunks whose source metadata basename matches file_name.
-    Returns the number of chunks deleted.
-    """
-    collection = get_vector_store()._collection
+def delete_document(user_id: str, file_name: str) -> int:
+
+    collection = get_vector_store(user_id)._collection
     all_results = collection.get(include=["metadatas"])
-    ids_to_delete = [
+    ids_to_delete = [ # pair chunks ID's with their metadata
         doc_id
         for doc_id, meta in zip(all_results["ids"], all_results["metadatas"])
         if Path(meta.get("source", "")).name == file_name
     ]
     if ids_to_delete:
-        collection.delete(ids=ids_to_delete)
+        collection.delete(ids=ids_to_delete) # loop throuh the IDs and their metadata and deletes them
     return len(ids_to_delete)
 
 
-def ingest_documents(chunks: list[Document]) -> Chroma:
-    """
-    Ingests document chunks into the vector store using append behavior.
+def ingest_documents(user_id: str, chunks: list[Document]) -> Chroma:
 
-    Append was chosen over overwrite because documents are uploaded individually
-    over time. Overwriting would delete all previously ingested documents each
-    time a new one is added. With append, each upload accumulates in the store.
-
-    Note: avoid ingesting the same document twice as it will create duplicate
-    chunks and degrade search quality.
-    """
     if not chunks:
         raise ValueError("No chunks provided for ingestion")
 
     try:
-        vector_store = get_vector_store()
+        vector_store = get_vector_store(user_id)
         vector_store.add_documents(chunks)
     except Exception as e:
         raise RuntimeError(f"Failed to ingest documents: {e}") from e
 
-    print(f"Ingested {len(chunks)} chunks into vector store")
+    print(f"Ingested {len(chunks)} chunks into vector store for user {user_id}")
     return vector_store

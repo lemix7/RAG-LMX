@@ -18,8 +18,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -139,6 +139,11 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
+
+# RAG runtime artifacts (per-user data, vector DB, ingest registries)
+chroma_db/
+registries/
+ingested_files.json
 
 # Environments
 .env

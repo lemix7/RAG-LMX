@@ -1,10 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useAuth } from "@/lib/useAuth";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+  const { profile, loading } = useAuth();
+
+  // Redirect non-admins once the profile has loaded.
+  useEffect(() => {
+    if (!loading && profile && profile.role !== "admin") {
+      router.replace("/");
+    }
+  }, [loading, profile, router]);
+
+  // Show nothing while the profile is still loading.
+  if (loading) return null;
+
+  // Once loaded, block non-admins (redirect already fired via useEffect).
+  if (!profile || profile.role !== "admin") {
+    return (
+      <div style={{ display: "flex", height: "100%", width: "100%", alignItems: "center", justifyContent: "center", background: "#0c0c0b", color: "#7d8187", fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif", fontSize: 14 }}>
+        Redirecting…
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", height: "100%", width: "100%", alignItems: "flex-start", background: "#0c0c0b", overflow: "hidden" }}>

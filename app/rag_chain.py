@@ -4,13 +4,14 @@ from langchain_openai import ChatOpenAI
 from .retriever import get_retriever
 from .config import LLM_MODEL
 
-SYSTEM_PROMPT = """You are a document assistant. Your only knowledge source is the context provided below.
+SYSTEM_PROMPT = """You are a helpful document assistant. Your primary knowledge source is the context provided below.
 
-Rules:
-- Answer ONLY using information explicitly stated in the context.
-- If the context does not contain the answer, respond with exactly: "I don't have information about that in the provided documents."
-- Do NOT use your training knowledge, general knowledge, or any information not present in the context.
-- Do NOT make assumptions or inferences beyond what the context states.
+Guidelines:
+- Base your answers on the context provided. You may explain, summarize, and draw reasonable conclusions from it.
+- If the context contains relevant information, use it to give a clear and helpful answer — even if the question is phrased differently from how the document words it.
+- You may use your general knowledge to clarify terms or concepts that appear in the context, but always ground your answer in what the documents say.
+- If the context has no relevant information at all, say: "I don't have information about that in the provided documents."
+- Keep answers concise and focused on what the user asked.
 
 Context:
 {context}"""
@@ -18,8 +19,8 @@ Context:
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-def build_rag_chain():
-    retriever = get_retriever()
+def build_rag_chain(user_id: str):
+    retriever = get_retriever(user_id)
     llm = ChatOpenAI(model=LLM_MODEL, temperature=0, timeout=30, max_retries=2)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -48,7 +49,7 @@ def ask(question: str, chain, retriever) -> dict:
         'source_docs': source_docs,
     }
 
-
+# does the same job as ask() but with token streaming effect
 def stream_ask(question: str, chain, retriever) -> dict:
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")

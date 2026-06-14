@@ -5,11 +5,12 @@ from app.text_splitter import split_documents
 from app.vector_store import ingest_documents, list_ingested_sources, delete_document
 from app.file_registry import remove_from_registry
 from app.rag_chain import ask, stream_ask, build_rag_chain
+from app.config import CLI_USER_ID
 
 
 def ingest_documents_to_vector_store():
     print("Ingesting documents...")
-    documents = load_documents()
+    documents = load_documents(CLI_USER_ID)
     if not documents:
         print("No documents found. Make sure files are in the docs folder.")
         return
@@ -21,13 +22,13 @@ def ingest_documents_to_vector_store():
         return
 
     print('Ingesting chunks into vector store...')
-    ingest_documents(chunks)
+    ingest_documents(CLI_USER_ID, chunks)
     print('Documents ingested successfully')
 
 
 def chat():
     print('RAG Chatbot is ready! Type "quit" to exit.')
-    chain, retriever = build_rag_chain()
+    chain, retriever = build_rag_chain(CLI_USER_ID)
 
     while True:
         question = input('\nYou: ').strip()
@@ -54,7 +55,7 @@ def chat():
             print(f' [{i}] {label}')
 
 def delete_ingested_document():
-    sources = list_ingested_sources()
+    sources = list_ingested_sources(CLI_USER_ID)
     if not sources:
         print("No documents are currently ingested.")
         return
@@ -69,16 +70,21 @@ def delete_ingested_document():
         return
 
     to_delete = []
+    
     for token in raw.split(','):
+
         token = token.strip()
+
         if token.isdigit():
             idx = int(token) - 1
             if 0 <= idx < len(sources):
                 to_delete.append(sources[idx])
             else:
                 print(f"  Invalid number: {token}")
+
         elif token in sources:
             to_delete.append(token)
+
         else:
             print(f"  Not found: {token}")
 
@@ -93,8 +99,8 @@ def delete_ingested_document():
         return
 
     for file_name in to_delete:
-        count = delete_document(file_name)
-        remove_from_registry(file_name)
+        count = delete_document(CLI_USER_ID, file_name)
+        remove_from_registry(CLI_USER_ID, file_name)
         print(f"Deleted '{file_name}' ({count} chunks removed from vector store)")
 
 

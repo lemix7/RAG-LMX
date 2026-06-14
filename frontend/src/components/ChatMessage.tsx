@@ -1,5 +1,6 @@
 import type { Message } from "@/lib/types";
 import { SourceAttribution } from "./SourceAttribution";
+import { VoiceReplyButton } from "./VoiceReplyButton";
 import ReactMarkdown from "react-markdown";
 import { FeatherBot } from "@subframe/core";
 
@@ -65,6 +66,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 </div>
               ) : null}
             </div>
+          )}
+
+          {!message.isStreaming && !message.error && message.content && (
+            <VoiceReplyButton text={message.content} autoPlay={message.fromVoice} />
           )}
 
           {!message.isStreaming && message.sources && message.sources.length > 0 && (

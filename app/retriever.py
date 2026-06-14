@@ -15,42 +15,27 @@ from .config import (
     BM25_WEIGHT,
     RERANKER_MODEL,
     RERANKER_SCORE_THRESHOLD,
+    RERANKER_TOP_N
 )
 from .vector_store import get_vector_store
 
-
 class ThresholdReranker(CrossEncoderReranker):
-    """
-    CrossEncoderReranker + score threshold.
-    Drops chunks that score below the threshold so the LLM only
-    receives genuinely relevant context.
-    """
+    # CrossEncoderReranker with a minimum score cutoff.
+   
     score_threshold: float = 0.0
 
-    def compress_documents(
-        self,
-        documents: Sequence[Document],
-        query: str,
-        callbacks: Callbacks | None = None,
-    ) -> Sequence[Document]:
-        scores = self.model.score([(query, doc.page_content)
-                                  for doc in documents])
+    def compress_documents(self, documents: Sequence[Document], query: str, callbacks: Callbacks | None = None) -> Sequence[Document]:
+
+        scores = self.model.score([(query, doc.page_content) for doc in documents])
         docs_with_scores = list(zip(documents, scores, strict=False))
-        result = sorted(docs_with_scores,
-                        key=operator.itemgetter(1), reverse=True)
-        return [
-            doc for doc, score in result[: self.top_n]
-            if score >= self.score_threshold
-        ]
+        result = sorted(docs_with_scores, key=operator.itemgetter(1), reverse=True)
+        return [doc for doc, score in result[:self.top_n] if score >= self.score_threshold]
 
 
-def _fetch_all_documents_from_chroma() -> list[Document]:
-    """
-    Loads every stored chunk out of ChromaDB so BM25 can build its index.
-    BM25 is not a persistent database — it lives in memory and needs the raw
-    text of every chunk at startup. Returns empty list if collection is empty.
-    """
-    vector_store = get_vector_store()
+def _fetch_all_documents_from_chroma(user_id: str) -> list[Document]:
+    # Pulls all chunks from the user's ChromaDB collection to build the in-memory BM25 index.
+
+    vector_store = get_vector_store(user_id)
     result = vector_store.get(include=["documents", "metadatas"])
 
     texts = result.get("documents") or []
@@ -61,31 +46,31 @@ def _fetch_all_documents_from_chroma() -> list[Document]:
             "Warning: ChromaDB collection is empty. BM25 retriever will return no results.")
         return []
 
-    documents = [
-        Document(page_content=text, metadata=meta or {})
-        for text, meta in zip(texts, metadatas)
-    ]
+    documents = []
+
+    for text, meta in zip(texts, metadatas):
+        if meta is None:
+            meta = {}
+        doc = Document(page_content=text, metadata=meta) 
+        documents.append(doc)
+
     print(f"Loaded {len(documents)} chunks from ChromaDB for BM25 index.")
-    return documents
+    return documents 
 
 
-def get_retriever(k: int = RETRIEVER_K):
-    """
-    Builds the full hybrid retrieval pipeline:
-      Vector retriever + BM25 retriever → EnsembleRetriever → CrossEncoder reranker
-    Falls back to vector-only if ChromaDB is empty (e.g. before first ingest).
-    """
+def get_retriever(user_id: str, k: int = RETRIEVER_K):
+    
     if k < 1:
         raise ValueError(f"k must be at least 1, got {k}")
 
-    vector_store = get_vector_store()
+    vector_store = get_vector_store(user_id)
 
     vector_retriever = vector_store.as_retriever(
         search_type="similarity",
         search_kwargs={"k": ENSEMBLE_K},
     )
 
-    all_docs = _fetch_all_documents_from_chroma()
+    all_docs = _fetch_all_documents_from_chroma(user_id)
 
     if not all_docs:
         print("Falling back to vector-only retriever (no documents in store yet).")
@@ -106,7 +91,7 @@ def get_retriever(k: int = RETRIEVER_K):
     cross_encoder = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
     reranker = ThresholdReranker(
         model=cross_encoder,
-        top_n=k,
+        top_n=RERANKER_TOP_N,
         score_threshold=RERANKER_SCORE_THRESHOLD,
     )
 

@@ -1,11 +1,9 @@
-import sys
-sys.path.insert(0, '/Users/ahmad/Developer/RAG-LMX/app')
 
 from unittest.mock import MagicMock, patch
 from langchain_core.documents import Document
 
-import retriever as retriever_module
-from retriever import ThresholdReranker, _fetch_all_documents_from_chroma, get_retriever
+import app.retriever as retriever_module
+from app.retriever import ThresholdReranker, _fetch_all_documents_from_chroma, get_retriever
 
 
 # ---------------------------------------------------------------------------
@@ -90,7 +88,7 @@ def test_fetch_all_documents_returns_documents():
     }
 
     with patch.object(retriever_module, "get_vector_store", return_value=mock_store):
-        docs = _fetch_all_documents_from_chroma()
+        docs = _fetch_all_documents_from_chroma("test-user")
 
     assert len(docs) == 2
     assert all(isinstance(d, Document) for d in docs)
@@ -105,7 +103,7 @@ def test_fetch_all_documents_returns_empty_on_empty_store():
     mock_store.get.return_value = {"documents": [], "metadatas": []}
 
     with patch.object(retriever_module, "get_vector_store", return_value=mock_store):
-        docs = _fetch_all_documents_from_chroma()
+        docs = _fetch_all_documents_from_chroma("test-user")
 
     assert docs == []
     print("PASSED")
@@ -118,7 +116,7 @@ def test_fetch_all_documents_returns_empty_on_empty_store():
 def test_get_retriever_raises_on_invalid_k():
     print("\n--- Test 7: get_retriever raises ValueError when k < 1 ---")
     try:
-        get_retriever(k=0)
+        get_retriever("test-user", k=0)
         assert False, "Expected ValueError"
     except ValueError as e:
         assert "k must be at least 1" in str(e)
@@ -131,7 +129,7 @@ def test_get_retriever_falls_back_to_vector_only_when_store_empty():
     mock_store.get.return_value = {"documents": [], "metadatas": []}
 
     with patch.object(retriever_module, "get_vector_store", return_value=mock_store):
-        result = get_retriever(k=5)
+        result = get_retriever("test-user", k=5)
 
     # vector-only fallback — not an EnsembleRetriever / ContextualCompressionRetriever
     from langchain_classic.retrievers import ContextualCompressionRetriever
@@ -151,11 +149,11 @@ def test_get_retriever_returns_hybrid_when_documents_exist():
     mock_cross_encoder.score.return_value = [0.9, 0.8]
 
     with patch.object(retriever_module, "get_vector_store", return_value=mock_store), \
-         patch("retriever.BM25Retriever") as MockBM25, \
-         patch("retriever.HuggingFaceCrossEncoder", return_value=mock_cross_encoder):
+         patch("app.retriever.BM25Retriever") as MockBM25, \
+         patch("app.retriever.HuggingFaceCrossEncoder", return_value=mock_cross_encoder):
 
         MockBM25.from_documents.return_value = MagicMock()
-        result = get_retriever(k=5)
+        result = get_retriever("test-user", k=5)
 
     from langchain_classic.retrievers import ContextualCompressionRetriever
     assert isinstance(result, ContextualCompressionRetriever)
@@ -173,11 +171,11 @@ def test_get_retriever_uses_bm25_with_all_docs():
     mock_cross_encoder = MagicMock()
 
     with patch.object(retriever_module, "get_vector_store", return_value=mock_store), \
-         patch("retriever.BM25Retriever") as MockBM25, \
-         patch("retriever.HuggingFaceCrossEncoder", return_value=mock_cross_encoder):
+         patch("app.retriever.BM25Retriever") as MockBM25, \
+         patch("app.retriever.HuggingFaceCrossEncoder", return_value=mock_cross_encoder):
 
         MockBM25.from_documents.return_value = MagicMock()
-        get_retriever(k=5)
+        get_retriever("test-user", k=5)
 
         call_args = MockBM25.from_documents.call_args
         passed_docs = call_args[0][0]
