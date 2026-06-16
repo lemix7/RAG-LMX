@@ -11,9 +11,17 @@ export function Actions({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function GhostButton({ children }: { children: React.ReactNode }) {
+interface GhostButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export function GhostButton({ children, onClick, disabled }: GhostButtonProps) {
   return (
     <motion.button
+      onClick={onClick}
+      disabled={disabled}
       whileHover={{ opacity: 0.75 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.15 }}
@@ -29,7 +37,8 @@ export function GhostButton({ children }: { children: React.ReactNode }) {
         fontSize: 16,
         fontFamily: FONT,
         letterSpacing: "-0.025em",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
       }}
     >
       {children}
@@ -37,9 +46,18 @@ export function GhostButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function FilledButton({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
+interface FilledButtonProps {
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+export function FilledButton({ children, icon, onClick, disabled }: FilledButtonProps) {
   return (
     <motion.button
+      onClick={onClick}
+      disabled={disabled}
       whileHover={{ opacity: 0.85 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.15 }}
@@ -55,7 +73,8 @@ export function FilledButton({ children, icon }: { children: React.ReactNode; ic
         fontSize: 16,
         fontFamily: FONT,
         letterSpacing: "-0.025em",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.6 : 1,
       }}
     >
       {icon}

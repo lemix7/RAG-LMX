@@ -12,13 +12,17 @@ interface InputFieldProps {
   placeholder?: string;
   icon?: React.ReactNode;
   hint?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  disabled?: boolean;
+  error?: boolean;
 }
 
-export function InputField({ label, type = "text", placeholder, icon, hint }: InputFieldProps) {
+export function InputField({ label, type = "text", placeholder, icon, hint, value, onChange, disabled, error }: InputFieldProps) {
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
 
-  const borderColor = focused ? "#2563eb" : hovered ? "#474747" : "#1f2228";
+  const borderColor = error ? "#dc2626" : focused ? "#2563eb" : hovered ? "#474747" : "#1f2228";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
@@ -64,6 +68,9 @@ export function InputField({ label, type = "text", placeholder, icon, hint }: In
         <input
           type={type}
           placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          disabled={disabled}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onMouseEnter={() => setHovered(true)}
@@ -85,6 +92,8 @@ export function InputField({ label, type = "text", placeholder, icon, hint }: In
             boxSizing: "border-box",
             position: "relative",
             zIndex: 1,
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? "not-allowed" : "text",
           }}
         />
       </div>
@@ -96,7 +105,7 @@ export function InputField({ label, type = "text", placeholder, icon, hint }: In
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            style={{ fontSize: 11, color: "#474747", fontFamily: MONO, letterSpacing: "0.06em", lineHeight: 1.6, margin: 0, overflow: "hidden" }}
+            style={{ fontSize: 11, color: error ? "#dc2626" : "#474747", fontFamily: MONO, letterSpacing: "0.06em", lineHeight: 1.6, margin: 0, overflow: "hidden" }}
           >
             {hint}
           </motion.p>

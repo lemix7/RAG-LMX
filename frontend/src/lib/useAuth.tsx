@@ -18,6 +18,8 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  updateProfile: (updates: { full_name?: string; email?: string }) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -76,8 +78,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   }, [router]);
 
+  const updateProfile = useCallback(
+    async (updates: { full_name?: string; email?: string }) => {
+      const supabase = createClient();
+
+      if (updates.full_name !== undefined) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ full_name: updates.full_name })
+          .eq("id", user?.id);
+        if (error) throw error;
+        setProfile((prev) => (prev ? { ...prev, full_name: updates.full_name! } : prev));
+      }
+
+      if (updates.email !== undefined) {
+        const { data, error } = await supabase.auth.updateUser({ email: updates.email });
+        if (error) throw error;
+        if (data.user) setUser(data.user);
+      }
+    },
+    [user?.id]
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      if (!user?.email) throw new Error("No authenticated user");
+      const supabase = createClient();
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+      if (signInError) throw new Error("Current password is incorrect");
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+    },
+    [user?.email]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, updateProfile, changePassword }}>
       {children}
     </AuthContext.Provider>
   );
