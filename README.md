@@ -22,7 +22,7 @@ A multi-user Retrieval-Augmented Generation (RAG) web application. Users sign up
 
 ## Supported file types
 
-`.txt`, `.pdf`, `.docx`, `.doc`, `.md`, `.csv`
+`.txt`, `.pdf`, `.docx`, `.doc`, `.md`
 
 ## Setup
 
