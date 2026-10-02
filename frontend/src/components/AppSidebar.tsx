@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,7 +12,6 @@ import {
   FeatherDatabase,
   FeatherFileText,
   FeatherLayoutDashboard,
-  FeatherLayers,
   FeatherLogOut,
   FeatherMessageSquare,
   FeatherPlus,
@@ -230,10 +230,8 @@ export function AppSidebar({ variant = "main", upload, chats, onClose }: AppSide
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "20px 16px 16px", borderBottom: "1px solid #1f2228" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <FeatherLayers style={{ width: 15, height: 15, color: "#ffffff" }} />
-          </div>
-          <span style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}>RAG LMX</span>
+          <Image src="/logo.svg" alt="" width={25} height={25} style={{ flexShrink: 0, filter: "brightness(0) invert(1)" }} />
+          <span style={{ fontSize: 15, fontFamily: FONT, fontWeight: 400, letterSpacing: "-0.025em", color: "#ffffff" }}> LMX</span>
         </div>
         {onClose && (
           <button

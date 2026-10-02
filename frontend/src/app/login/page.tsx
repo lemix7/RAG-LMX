@@ -1,11 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   FeatherArrowRight,
-  FeatherBot,
   FeatherMail,
   FeatherMessageSquare,
   FeatherShield,
@@ -167,9 +167,7 @@ export default function LoginPage() {
       >
         {/* Mobile logo */}
         <div className="flex flex-col items-center gap-3 mb-8 md:hidden">
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1a3568", border: "1px solid #2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FeatherBot style={{ width: 22, height: 22, color: "#ffffff" }} />
-          </div>
+          <Image src="/logo.svg" alt="" width={44} height={44} style={{ flexShrink: 0, filter: "brightness(0) invert(1)" }} />
           <span style={{ fontSize: 18, fontFamily: FONT, letterSpacing: "-0.025em", color: "#ffffff" }}>RAG Admin</span>
         </div>
 
